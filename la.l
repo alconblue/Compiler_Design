@@ -7,7 +7,6 @@ multilineComment "/*"([^*]|\*+[^*/])*\*+"/"
 letter [a-zA-Z]
 digit [0-9]
 identifier (_|{letter})(_|{letter}|{digit})*
-<<<<<<< HEAD
 dataType int|float|double|short\ int|long\ int
 argument {dataType}[\ ]*{identifier}
 function {identifier}"("(([\ ]*{argument}[\ ]*\,[\ ]*)*[\ ]*{argument}[\ ]*)?")" 

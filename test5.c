@@ -4,5 +4,8 @@ int main()
 	void float
 	inta
 	hello world
-	9hello
+	9
+	hello
+	9.0
+	.9
 }

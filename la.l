@@ -6,8 +6,9 @@ singleLineComment \/\/.*
 multilineComment "/*"([^*]|\*+[^*/])*\*+"/"
 letter [a-zA-Z]
 digit [0-9]
-nonIdentifiers ({digit})(_|{letter}|{digit})*
 identifier (_|{letter})(_|{letter}|{digit})*
+integer ({digit})+
+float ({digit})*\.({digit})+
 %%
 
 auto {printf("Keyword auto found\n"); /*return(AUTO);*/}
@@ -45,9 +46,9 @@ while {printf("Keyword while found\n"); /*return(WHILE);*/}
 {singleLineComment} {}
 {multilineComment} {}
 {keyword} {printf("%s is a Keyword\n",yytext);}
-{nonIdentifiers} {printf("%s is not an Identifier", yytext);}
 {identifier} {printf("%s is a Identifier\n", yytext);}
-
+{integer} {printf("%s is an Integer constant\n", yytext);}
+{float} {printf("%s is a floating point constant\n", yytext);}
 %%
 int main()
 {

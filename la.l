@@ -8,6 +8,9 @@ letter [a-zA-Z]
 digit [0-9]
 nonIdentifiers ({digit})(_|{letter}|{digit})*
 identifier (_|{letter})(_|{letter}|{digit})*
+dataType int|float|double|short\ int|long\ int
+argument {dataType}[\ ]*{identifier}
+function {identifier}"("(([\ ]*{argument}[\ ]*\,[\ ]*)*[\ ]*{argument}[\ ]*)?")" 
 %%
 
 auto {printf("Keyword auto found\n"); /*return(AUTO);*/}
@@ -45,7 +48,7 @@ while {printf("Keyword while found\n"); /*return(WHILE);*/}
 {singleLineComment} {}
 {multilineComment} {}
 {keyword} {printf("%s is a Keyword\n",yytext);}
-{nonIdentifiers} {printf("%s is not an Identifier", yytext);}
+{function} {printf("%s is a Function\n",yytext);}
 {identifier} {printf("%s is a Identifier\n", yytext);}
 
 %%

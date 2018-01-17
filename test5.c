@@ -5,4 +5,5 @@ int main()
 	inta
 	hello world
 	9hello
+	add( int x , int y )
 }

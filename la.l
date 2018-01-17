@@ -13,12 +13,16 @@ argument {dataType}[\ ]*{identifier}
 function {identifier}"("(([\ ]*{argument}[\ ]*\,[\ ]*)*[\ ]*{argument}[\ ]*)?")" 
 integer ({digit})+
 float ({digit})*\.({digit})+
+assignmentOperator "="
+arithmeticOperator "+"|"-"|"*"|"/"|"%"
+operator "+="|"-="|"*="|"/="|"%="|">>="|"<<="|"&="|"^="|"|="|"++"|"--"|"=="|"!="|">"|"<"|">="|"<="|"||"|"&&"|"!"|"&"|"|"|"^"|"~"|"<<"|">>"|"?" 
 
 %%
 
 {singleLineComment} {}
 {multilineComment} {}
 {str} {printf("%s - String constant\n", yytext);}
+else" "if {printf("else if found\n"); /*return(ELSEIF);*/}
 auto {printf("Keyword auto found\n"); /*return(AUTO);*/}
 break {printf("Keyword break found\n"); /*return(BREAK);*/}
 case {printf("Keyword case found\n"); /*return(CASE);*/}
@@ -56,6 +60,7 @@ while {printf("Keyword while found\n"); /*return(WHILE);*/}
 {identifier} {printf("%s is a Identifier\n", yytext);}
 {integer} {printf("%s is an Integer constant\n", yytext);}
 {float} {printf("%s is a floating point constant\n", yytext);}
+{operator} {printf("%s is an operator\n", yytext);}
 %%
 int main()
 {

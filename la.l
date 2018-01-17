@@ -4,6 +4,7 @@
 keyword auto|break|case|char|const|continue|default|do|double|else|enum|extern|float|for|goto|if|int|long|register|return|short|signed|sizeof|static|struct|switch|typedef|union|unsigned|void|volatile|while
 singleLineComment \/\/.*
 multilineComment "/*"([^*]|\*+[^*/])*\*+"/"
+str \"[^\"]*\"
 letter [a-zA-Z]
 digit [0-9]
 identifier (_|{letter})(_|{letter}|{digit})*
@@ -12,8 +13,12 @@ argument {dataType}[\ ]*{identifier}
 function {identifier}"("(([\ ]*{argument}[\ ]*\,[\ ]*)*[\ ]*{argument}[\ ]*)?")" 
 integer ({digit})+
 float ({digit})*\.({digit})+
+
 %%
 
+{singleLineComment} {}
+{multilineComment} {}
+{str} {printf("%s - String constant\n", yytext);}
 auto {printf("Keyword auto found\n"); /*return(AUTO);*/}
 break {printf("Keyword break found\n"); /*return(BREAK);*/}
 case {printf("Keyword case found\n"); /*return(CASE);*/}
@@ -46,8 +51,6 @@ unsigned {printf("Keyword unsigned found\n"); /*return(UNSIGNED);*/}
 void {printf("Keyword void found\n"); /*return(VOID);*/}
 volatile {printf("Keyword volatile found\n"); /*return(VOLATILE);*/}
 while {printf("Keyword while found\n"); /*return(WHILE);*/}
-{singleLineComment} {}
-{multilineComment} {}
 {keyword} {printf("%s is a Keyword\n",yytext);}
 {function} {printf("%s is a Function\n",yytext);}
 {identifier} {printf("%s is a Identifier\n", yytext);}
@@ -56,7 +59,7 @@ while {printf("Keyword while found\n"); /*return(WHILE);*/}
 %%
 int main()
 {
-	yyin=fopen("test5.c","r");
+	yyin=fopen("test.c","r");
 	yylex();
 }
 int yywrap()

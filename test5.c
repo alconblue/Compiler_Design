@@ -6,7 +6,9 @@ int main()
 	hello world
 	add( int x , int y )
 	9
-	hello
+	"hell
+	\no" "world"
+	/*hell wrld*/
 	9.0
 	.9
 }

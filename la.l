@@ -12,8 +12,13 @@ argument {dataType}[\ ]*{identifier}
 function {identifier}"("(([\ ]*{argument}[\ ]*\,[\ ]*)*[\ ]*{argument}[\ ]*)?")" 
 integer ({digit})+
 float ({digit})*\.({digit})+
+assignmentOperator "="
+arithmeticOperator "+"|"-"|"*"|"/"|"%"
+operator "+="|"-="|"*="|"/="|"%="|">>="|"<<="|"&="|"^="|"|="|"++"|"--"|"=="|"!="|">"|"<"|">="|"<="|"||"|"&&"|"!"|"&"|"|"|"^"|"~"|"<<"|">>"|"?" 
 %%
-
+{singleLineComment} {}
+{multilineComment} {}
+else" "if {printf("else if found\n"); /*return(ELSEIF);*/}
 auto {printf("Keyword auto found\n"); /*return(AUTO);*/}
 break {printf("Keyword break found\n"); /*return(BREAK);*/}
 case {printf("Keyword case found\n"); /*return(CASE);*/}
@@ -46,13 +51,12 @@ unsigned {printf("Keyword unsigned found\n"); /*return(UNSIGNED);*/}
 void {printf("Keyword void found\n"); /*return(VOID);*/}
 volatile {printf("Keyword volatile found\n"); /*return(VOLATILE);*/}
 while {printf("Keyword while found\n"); /*return(WHILE);*/}
-{singleLineComment} {}
-{multilineComment} {}
 {keyword} {printf("%s is a Keyword\n",yytext);}
 {function} {printf("%s is a Function\n",yytext);}
 {identifier} {printf("%s is a Identifier\n", yytext);}
 {integer} {printf("%s is an Integer constant\n", yytext);}
 {float} {printf("%s is a floating point constant\n", yytext);}
+{operator} {printf("%s is an operator\n", yytext);}
 %%
 int main()
 {

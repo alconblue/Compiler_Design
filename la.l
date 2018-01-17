@@ -6,11 +6,13 @@ singleLineComment \/\/.*
 multilineComment "/*"([^*]|\*+[^*/])*\*+"/"
 letter [a-zA-Z]
 digit [0-9]
-nonIdentifiers ({digit})(_|{letter}|{digit})*
 identifier (_|{letter})(_|{letter}|{digit})*
+<<<<<<< HEAD
 dataType int|float|double|short\ int|long\ int
 argument {dataType}[\ ]*{identifier}
 function {identifier}"("(([\ ]*{argument}[\ ]*\,[\ ]*)*[\ ]*{argument}[\ ]*)?")" 
+integer ({digit})+
+float ({digit})*\.({digit})+
 %%
 
 auto {printf("Keyword auto found\n"); /*return(AUTO);*/}
@@ -50,7 +52,8 @@ while {printf("Keyword while found\n"); /*return(WHILE);*/}
 {keyword} {printf("%s is a Keyword\n",yytext);}
 {function} {printf("%s is a Function\n",yytext);}
 {identifier} {printf("%s is a Identifier\n", yytext);}
-
+{integer} {printf("%s is an Integer constant\n", yytext);}
+{float} {printf("%s is a floating point constant\n", yytext);}
 %%
 int main()
 {

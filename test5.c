@@ -4,6 +4,9 @@ int main()
 	void float
 	inta
 	hello world
-	9hello
 	add( int x , int y )
+	9
+	hello
+	9.0
+	.9
 }

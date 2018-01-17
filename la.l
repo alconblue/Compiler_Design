@@ -4,9 +4,11 @@
 keyword auto|break|case|char|const|continue|default|do|double|else|enum|extern|float|for|goto|if|int|long|register|return|short|signed|sizeof|static|struct|switch|typedef|union|unsigned|void|volatile|while
 singleLineComment \/\/.*
 multilineComment "/*"([^*]|\*+[^*/])*\*+"/"
+multilineCommentError "/*"([^*]|\*+[^*/])*
 str \"[^\"]*\"
 letter [a-zA-Z]
 digit [0-9]
+nonIdentifier ({digit})+(_|{letter})(_|{letter}|{digit})*
 identifier (_|{letter})(_|{letter}|{digit})*
 dataType int|float|double|short\ int|long\ int
 argument {dataType}[\ ]*{identifier}
@@ -16,11 +18,14 @@ float ({digit})*\.({digit})+
 assignmentOperator "="
 arithmeticOperator "+"|"-"|"*"|"/"|"%"
 operator "+="|"-="|"*="|"/="|"%="|">>="|"<<="|"&="|"^="|"|="|"++"|"--"|"=="|"!="|">"|"<"|">="|"<="|"||"|"&&"|"!"|"&"|"|"|"^"|"~"|"<<"|">>"|"?" 
-
+headerFile "#include"[\ ]*"<"[\ ]*[^>]*[\ ]*">"
+specialCharacters \;|\{|\}|\(|\)|\[|\]
+whitespaces [\ ]|[\n]|[\t]
 %%
-
+{multilineCommentError} {printf("ERROR: Multiline comment is not closed\n");}
 {singleLineComment} {}
 {multilineComment} {}
+{headerFile} {printf("Header file found\n");}
 {str} {printf("%s - String constant\n", yytext);}
 else" "if {printf("else if found\n"); /*return(ELSEIF);*/}
 auto {printf("Keyword auto found\n"); /*return(AUTO);*/}
@@ -60,11 +65,17 @@ while {printf("Keyword while found\n"); /*return(WHILE);*/}
 {identifier} {printf("%s is a Identifier\n", yytext);}
 {integer} {printf("%s is an Integer constant\n", yytext);}
 {float} {printf("%s is a floating point constant\n", yytext);}
+{nonIdentifier} {printf("%s is an ill formed token\n", yytext);}
 {operator} {printf("%s is an operator\n", yytext);}
+{assignmentOperator} {printf("%s is an asssignment operator\n", yytext);}
+{arithmeticOperator} {printf("%s is an arithmetic operator\n", yytext);}
+{specialCharacters} {printf("%s is a special character\n",yytext);}
+{whitespaces} {} 
+. {printf("Error: %s is an Illegal characters\n",yytext);}
 %%
 int main()
 {
-	yyin=fopen("test.c","r");
+	yyin=fopen("test4.c","r");
 	yylex();
 }
 int yywrap()

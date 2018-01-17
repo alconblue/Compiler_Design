@@ -10,6 +10,38 @@ nonIdentifiers ({digit})(_|{letter}|{digit})*
 identifier (_|{letter})(_|{letter}|{digit})*
 %%
 
+auto {printf("Keyword auto found\n"); /*return(AUTO);*/}
+break {printf("Keyword break found\n"); /*return(BREAK);*/}
+case {printf("Keyword case found\n"); /*return(CASE);*/}
+char {printf("Keyword char found\n"); /*return(CHAR);*/}
+const {printf("Keyword const found\n"); /*return(CONST);*/}
+continue {printf("Keyword continue found\n"); /*return(CONTINUE);*/}
+default {printf("Keyword default found\n"); /*return(DEFAULT);*/}
+do {printf("Keyword do found\n"); /*return(DO);*/}
+double {printf("Keyword double found\n"); /*return(DOUBLE);*/}
+else {printf("Keyword else found\n"); /*return(ELSE);*/}
+enum {printf("Keyword enum found\n"); /*return(ENUM);*/}
+extern {printf("Keyword extern found\n"); /*return(EXTERN);*/}
+float {printf("Keyword float found\n"); /*return(FLOAT);*/}
+for {printf("Keyword for found\n"); /*return(FOR);*/}
+goto {printf("Keyword goto found\n"); /*return(GOTO);*/}
+if {printf("Keyword if found\n"); /*return(IF);*/}
+int {printf("Keyword int found\n"); /*return(INT);*/}
+long {printf("Keyword long found\n"); /*return(LONG);*/}
+register {printf("Keyword register found\n"); /*return(REGISTER);*/}
+return {printf("Keyword return found\n"); /*return(RETURN);*/}
+short {printf("Keyword short found\n"); /*return(SHORT);*/}
+signed {printf("Keyword signed found\n"); /*return(SIGNED);*/}
+sizeof {printf("Keyword sizeof found\n"); /*return(SIZEOF);*/}
+static {printf("Keyword static found\n"); /*return(STATIC);*/}
+struct {printf("Keyword struct found\n"); /*return(STRUCT);*/}
+switch {printf("Keyword switch found\n"); /*return(SWITCH);*/}
+typedef {printf("Keyword typedef found\n"); /*return(TYPEDEF);*/}
+union {printf("Keyword union found\n"); /*return(UNION);*/}
+unsigned {printf("Keyword unsigned found\n"); /*return(UNSIGNED);*/}
+void {printf("Keyword void found\n"); /*return(VOID);*/}
+volatile {printf("Keyword volatile found\n"); /*return(VOLATILE);*/}
+while {printf("Keyword while found\n"); /*return(WHILE);*/}
 {singleLineComment} {}
 {multilineComment} {}
 {keyword} {printf("%s is a Keyword\n",yytext);}

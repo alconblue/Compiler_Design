@@ -1,6 +1,22 @@
 %{
-
+	#include <stdio.h>
+	#include <stdlib.h>
+	#define size 20
+	int globalIndex=0;
+	struct symbolTable{
+		int index;
+		char *symbol;
+		char *attribute;
+		struct symbolTable *next;
+	};
+	struct symbolTable *hash[size];
+	int i=0;
+	for (;i<size;i++)
+	{
+		hash[i] = NULL;
+	}
 %}
+
 keyword auto|break|case|char|const|continue|default|do|double|else|enum|extern|float|for|goto|if|int|long|register|return|short|signed|sizeof|static|struct|switch|typedef|union|unsigned|void|volatile|while
 singleLineComment \/\/.*
 multilineComment "/*"([^*]|\*+[^*/])*\*+"/"
@@ -75,7 +91,7 @@ while {printf("Keyword while found\n"); /*return(WHILE);*/}
 %%
 int main()
 {
-	yyin=fopen("test4.c","r");
+	yyin=fopen("testcases/test4.c","r");
 	yylex();
 }
 int yywrap()

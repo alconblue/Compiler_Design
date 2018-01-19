@@ -127,7 +127,11 @@ whitespaces [\ ]|[\n]|[\t]
 {singleLineComment} {}
 {multilineComment} {}
 {headerFile} {printf("Header file found\n");}
-{str} {printf("%s - String constant\n", yytext); addToTable(1,yytext,"String");}
+{str} {
+		char *te = (char *)malloc(strlen(yytext)-1);
+		int l = strlen(yytext);
+		strncpy(te, yytext + 1, l-2);
+		printf("%s %d- String constant\n", te, l); addToTable(1,te,"String");}
 auto {printf("Keyword auto found\n"); addToTable(0,"auto","keyword");}
 break {printf("Keyword break found\n"); addToTable(0,"break", "keyword");}
 case {printf("Keyword case found\n"); addToTable(0,"case", "keyword");}

@@ -8,7 +8,7 @@
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
 #define YY_FLEX_MINOR_VERSION 6
-#define YY_FLEX_SUBMINOR_VERSION 1
+#define YY_FLEX_SUBMINOR_VERSION 0
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
 #endif
@@ -87,13 +87,25 @@ typedef unsigned int flex_uint32_t;
 
 #endif /* ! FLEXINT_H */
 
-/* TODO: this is always defined, so inline it */
-#define yyconst const
+#ifdef __cplusplus
 
-#if defined(__GNUC__) && __GNUC__ >= 3
-#define yynoreturn __attribute__((__noreturn__))
+/* The "const" storage-class-modifier is valid. */
+#define YY_USE_CONST
+
+#else	/* ! __cplusplus */
+
+/* C99 requires __STDC__ to be defined as 1. */
+#if defined (__STDC__)
+
+#define YY_USE_CONST
+
+#endif	/* defined (__STDC__) */
+#endif	/* ! __cplusplus */
+
+#ifdef YY_USE_CONST
+#define yyconst const
 #else
-#define yynoreturn
+#define yyconst
 #endif
 
 /* Returned upon end-of-file. */
@@ -154,7 +166,7 @@ typedef struct yy_buffer_state *YY_BUFFER_STATE;
 typedef size_t yy_size_t;
 #endif
 
-extern int yyleng;
+extern yy_size_t yyleng;
 
 extern FILE *yyin, *yyout;
 
@@ -193,7 +205,7 @@ struct yy_buffer_state
 	/* Size of input buffer in bytes, not including room for EOB
 	 * characters.
 	 */
-	int yy_buf_size;
+	yy_size_t yy_buf_size;
 
 	/* Number of characters read into yy_ch_buf, not including EOB
 	 * characters.
@@ -221,7 +233,7 @@ struct yy_buffer_state
 
     int yy_bs_lineno; /**< The line count. */
     int yy_bs_column; /**< The column count. */
-
+    
 	/* Whether to try to fill the input buffer when we reach the
 	 * end of it.
 	 */
@@ -249,7 +261,7 @@ struct yy_buffer_state
 /* Stack of input buffers. */
 static size_t yy_buffer_stack_top = 0; /**< index of top of stack. */
 static size_t yy_buffer_stack_max = 0; /**< capacity of stack. */
-static YY_BUFFER_STATE * yy_buffer_stack = NULL; /**< Stack as an array. */
+static YY_BUFFER_STATE * yy_buffer_stack = 0; /**< Stack as an array. */
 
 /* We provide macros for accessing buffer states in case in the
  * future we want to put the buffer states in a more general
@@ -269,10 +281,10 @@ static YY_BUFFER_STATE * yy_buffer_stack = NULL; /**< Stack as an array. */
 /* yy_hold_char holds the character lost when yytext is formed. */
 static char yy_hold_char;
 static int yy_n_chars;		/* number of characters read into yy_ch_buf */
-int yyleng;
+yy_size_t yyleng;
 
 /* Points to current character in buffer. */
-static char *yy_c_buf_p = NULL;
+static char *yy_c_buf_p = (char *) 0;
 static int yy_init = 0;		/* whether we need to initialize */
 static int yy_start = 0;	/* start state number */
 
@@ -297,7 +309,7 @@ static void yy_init_buffer (YY_BUFFER_STATE b,FILE *file  );
 
 YY_BUFFER_STATE yy_scan_buffer (char *base,yy_size_t size  );
 YY_BUFFER_STATE yy_scan_string (yyconst char *yy_str  );
-YY_BUFFER_STATE yy_scan_bytes (yyconst char *bytes,int len  );
+YY_BUFFER_STATE yy_scan_bytes (yyconst char *bytes,yy_size_t len  );
 
 void *yyalloc (yy_size_t  );
 void *yyrealloc (void *,yy_size_t  );
@@ -331,7 +343,7 @@ void yyfree (void *  );
 
 typedef unsigned char YY_CHAR;
 
-FILE *yyin = NULL, *yyout = NULL;
+FILE *yyin = (FILE *) 0, *yyout = (FILE *) 0;
 
 typedef int yy_state_type;
 
@@ -348,20 +360,23 @@ extern char *yytext;
 static yy_state_type yy_get_previous_state (void );
 static yy_state_type yy_try_NUL_trans (yy_state_type current_state  );
 static int yy_get_next_buffer (void );
-static void yynoreturn yy_fatal_error (yyconst char* msg  );
+#if defined(__GNUC__) && __GNUC__ >= 3
+__attribute__((__noreturn__))
+#endif
+static void yy_fatal_error (yyconst char msg[]  );
 
 /* Done after the current pattern has been matched and before the
  * corresponding action - sets up yytext.
  */
 #define YY_DO_BEFORE_ACTION \
 	(yytext_ptr) = yy_bp; \
-	yyleng = (int) (yy_cp - yy_bp); \
+	yyleng = (size_t) (yy_cp - yy_bp); \
 	(yy_hold_char) = *yy_cp; \
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
 
-#define YY_NUM_RULES 50
-#define YY_END_OF_BUFFER 51
+#define YY_NUM_RULES 51
+#define YY_END_OF_BUFFER 52
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -371,31 +386,31 @@ struct yy_trans_info
 	};
 static yyconst flex_int16_t yy_accept[234] =
     {   0,
-        0,    0,   51,   49,   48,   48,   44,   49,   49,   46,
-       44,   47,   46,   46,   46,   49,   46,   41,   44,   45,
-       44,   44,   40,   44,   40,   40,   40,   40,   40,   40,
-       40,   40,   40,   40,   40,   40,   40,   40,   40,   44,
-       44,    0,    5,    0,   42,    1,    2,    0,   41,   43,
-       44,   44,    0,   40,   40,   40,   40,   40,   40,   40,
-       13,   40,   40,   40,   40,   40,   40,   21,   40,   40,
-       40,   40,   40,   40,   40,   40,   40,   40,   40,    0,
-        1,    0,    2,   43,    0,   39,    0,    0,    0,    0,
-        0,   40,   40,   40,   40,   40,   40,   40,   40,   40,
+        0,    0,   52,   50,   49,   49,   45,    2,   50,   47,
+       45,   48,   47,   47,   47,   50,   47,   42,   45,   46,
+       45,   45,   41,   45,   41,   41,   41,   41,   41,   41,
+       41,   41,   41,   41,   41,   41,   41,   41,   41,   45,
+       45,    2,    6,    0,   43,    1,    3,    0,   42,   44,
+       45,   45,    0,   41,   41,   41,   41,   41,   41,   41,
+       14,   41,   41,   41,   41,   41,   41,   22,   41,   41,
+       41,   41,   41,   41,   41,   41,   41,   41,   41,    0,
+        1,    0,    3,   44,    0,   40,    0,    0,    0,    0,
+        0,   41,   41,   41,   41,   41,   41,   41,   41,   41,
 
-       40,   40,   19,   40,   22,   40,   40,   40,   40,   40,
-       40,   40,   40,   40,   40,   40,   40,   40,   40,   40,
-        0,    3,    0,    0,    0,    0,    0,    6,   40,    8,
-        9,   40,   40,   40,   40,   15,   16,   40,   40,   20,
-       23,   40,   40,   40,   40,   40,   40,   40,   40,   40,
-       40,   40,   35,   40,   40,    0,    0,    0,    0,    0,
-        0,    7,   10,   40,   40,   40,   40,   18,   40,   40,
-       26,   40,   40,   40,   40,   40,   40,   33,   40,   40,
-       37,    0,    0,    0,    0,    0,    0,    0,   40,   40,
-       14,   17,   40,   25,   27,   28,   29,   30,   31,   40,
+       41,   41,   20,   41,   23,   41,   41,   41,   41,   41,
+       41,   41,   41,   41,   41,   41,   41,   41,   41,   41,
+        0,    4,    0,    0,    0,    0,    0,    7,   41,    9,
+       10,   41,   41,   41,   41,   16,   17,   41,   41,   21,
+       24,   41,   41,   41,   41,   41,   41,   41,   41,   41,
+       41,   41,   36,   41,   41,    0,    0,    0,    0,    0,
+        0,    8,   11,   41,   41,   41,   41,   19,   41,   41,
+       27,   41,   41,   41,   41,   41,   41,   34,   41,   41,
+       38,    0,    0,    0,    0,    0,    0,    0,   41,   41,
+       15,   18,   41,   26,   28,   29,   30,   31,   32,   41,
 
-       40,   40,    0,    0,    0,    0,    0,    0,    0,   40,
-       12,   40,   32,   40,   40,    0,    0,    0,    0,   11,
-       24,   34,   36,    0,    0,    0,    0,    0,    0,    4,
+       41,   41,    0,    0,    0,    0,    0,    0,    0,   41,
+       13,   41,   33,   41,   41,    0,    0,    0,    0,   12,
+       25,   35,   37,    0,    0,    0,    0,    0,    0,    5,
         0,    0,    0
     } ;
 
@@ -719,6 +734,7 @@ char *yytext;
 		printf("\n\nSYMBOL TABLE:\n");
 		printf("-------------------------------------------------------------------\n");
 		printf("%*s\t|\t%*s\t|\t%*s\n", 10, "INDEX", 10, "SYMBOL", 10, "ATTRIBUTE");
+		printf("-------------------------------------------------------------------\n");
 		for(;k<size;k++)
 		{
 			struct symbolTable *temp = hash[0][k];
@@ -728,10 +744,12 @@ char *yytext;
 				temp = temp->next;
 			}
 		}
+		printf("-------------------------------------------------------------------\n");
 		k=0;
 		printf("\n\nCONSTANT TABLE:\n");
 		printf("-------------------------------------------------------------------\n");
 		printf("%*s\t|\t%*s\t|\t%*s\n", 10, "INDEX", 10, "SYMBOL", 10, "ATTRIBUTE");
+		printf("-------------------------------------------------------------------\n");
 		for(;k<size;k++)
 		{
 			struct symbolTable *temp = hash[1][k];
@@ -741,8 +759,9 @@ char *yytext;
 				temp = temp->next;
 			}
 		}
+		printf("-------------------------------------------------------------------\n");
 	}
-#line 746 "lex.yy.c"
+#line 765 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -781,7 +800,7 @@ FILE *yyget_out (void );
 
 void yyset_out  (FILE * _out_str  );
 
-			int yyget_leng (void );
+yy_size_t yyget_leng (void );
 
 char *yyget_text (void );
 
@@ -840,7 +859,7 @@ static int input (void );
 /* This used to be an fputs(), but since the string might contain NUL's,
  * we now use fwrite().
  */
-#define ECHO do { if (fwrite( yytext, (size_t) yyleng, 1, yyout )) {} } while (0)
+#define ECHO do { if (fwrite( yytext, yyleng, 1, yyout )) {} } while (0)
 #endif
 
 /* Gets input and stuffs it into "buf".  number of characters read, or YY_NULL,
@@ -864,7 +883,7 @@ static int input (void );
 	else \
 		{ \
 		errno=0; \
-		while ( (result = (int) fread(buf, 1, max_size, yyin))==0 && ferror(yyin)) \
+		while ( (result = fread(buf, 1, max_size, yyin))==0 && ferror(yyin)) \
 			{ \
 			if( errno != EINTR) \
 				{ \
@@ -960,9 +979,9 @@ YY_DECL
 		}
 
 	{
-#line 119 "la.l"
+#line 124 "la.l"
 
-#line 966 "lex.yy.c"
+#line 985 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -992,7 +1011,7 @@ yy_match:
 				if ( yy_current_state >= 234 )
 					yy_c = yy_meta[(unsigned int) yy_c];
 				}
-			yy_current_state = yy_nxt[yy_base[yy_current_state] + (flex_int16_t) yy_c];
+			yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
 			++yy_cp;
 			}
 		while ( yy_base[yy_current_state] != 488 );
@@ -1022,259 +1041,265 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 120 "la.l"
+#line 125 "la.l"
 {printf("ERROR: Multiline comment is not closed\n");}
 	YY_BREAK
 case 2:
+/* rule 2 can match eol */
 YY_RULE_SETUP
-#line 121 "la.l"
-{}
+#line 126 "la.l"
+{printf("ERROR: String is not closed\n");}
 	YY_BREAK
 case 3:
-/* rule 3 can match eol */
 YY_RULE_SETUP
-#line 122 "la.l"
+#line 127 "la.l"
 {}
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 123 "la.l"
-{printf("Header file found\n");}
+#line 128 "la.l"
+{}
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 124 "la.l"
-{printf("%s - String constant\n", yytext); addToTable(1,yytext,"String");}
+#line 129 "la.l"
+{printf("Header file found\n");}
 	YY_BREAK
 case 6:
+/* rule 6 can match eol */
 YY_RULE_SETUP
-#line 125 "la.l"
-{printf("Keyword auto found\n"); addToTable(0,"auto","keyword");}
+#line 130 "la.l"
+{printf("%s - String constant\n", yytext); addToTable(1,yytext,"String");}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 126 "la.l"
-{printf("Keyword break found\n"); addToTable(0,"break", "keyword");}
+#line 131 "la.l"
+{printf("Keyword auto found\n"); addToTable(0,"auto","keyword");}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 127 "la.l"
-{printf("Keyword case found\n"); addToTable(0,"case", "keyword");}
+#line 132 "la.l"
+{printf("Keyword break found\n"); addToTable(0,"break", "keyword");}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 128 "la.l"
-{printf("Keyword char found\n"); addToTable(0,"char", "keyword");}
+#line 133 "la.l"
+{printf("Keyword case found\n"); addToTable(0,"case", "keyword");}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 129 "la.l"
-{printf("Keyword const found\n"); addToTable(0,"const", "keyword");}
+#line 134 "la.l"
+{printf("Keyword char found\n"); addToTable(0,"char", "keyword");}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 130 "la.l"
-{printf("Keyword continue found\n"); addToTable(0,"continue", "keyword");}
+#line 135 "la.l"
+{printf("Keyword const found\n"); addToTable(0,"const", "keyword");}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 131 "la.l"
-{printf("Keyword default found\n"); addToTable(0,"default", "keyword");}
+#line 136 "la.l"
+{printf("Keyword continue found\n"); addToTable(0,"continue", "keyword");}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 132 "la.l"
-{printf("Keyword do found\n"); addToTable(0,"do","keyword");}
+#line 137 "la.l"
+{printf("Keyword default found\n"); addToTable(0,"default", "keyword");}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 133 "la.l"
-{printf("Keyword double found\n"); addToTable(0,"double","keyword");}
+#line 138 "la.l"
+{printf("Keyword do found\n"); addToTable(0,"do","keyword");}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 134 "la.l"
-{printf("Keyword else found\n"); addToTable(0,"else","keyword");}
+#line 139 "la.l"
+{printf("Keyword double found\n"); addToTable(0,"double","keyword");}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 135 "la.l"
-{printf("Keyword enum found\n"); addToTable(0,"enum","keyword");}
+#line 140 "la.l"
+{printf("Keyword else found\n"); addToTable(0,"else","keyword");}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 136 "la.l"
-{printf("Keyword extern found\n"); addToTable(0,"extern","keyword");}
+#line 141 "la.l"
+{printf("Keyword enum found\n"); addToTable(0,"enum","keyword");}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 137 "la.l"
-{printf("Keyword float found\n"); addToTable(0,"float","keyword");}
+#line 142 "la.l"
+{printf("Keyword extern found\n"); addToTable(0,"extern","keyword");}
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 138 "la.l"
-{printf("Keyword for found\n"); addToTable(0,"for","keyword");}
+#line 143 "la.l"
+{printf("Keyword float found\n"); addToTable(0,"float","keyword");}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 139 "la.l"
-{printf("Keyword goto found\n"); addToTable(0,"goto","keyword");}
+#line 144 "la.l"
+{printf("Keyword for found\n"); addToTable(0,"for","keyword");}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 140 "la.l"
-{printf("Keyword if found\n"); addToTable(0,"if","keyword");}
+#line 145 "la.l"
+{printf("Keyword goto found\n"); addToTable(0,"goto","keyword");}
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 141 "la.l"
-{printf("Keyword int found\n"); addToTable(0,"int","keyword");}
+#line 146 "la.l"
+{printf("Keyword if found\n"); addToTable(0,"if","keyword");}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 142 "la.l"
-{printf("Keyword long found\n"); addToTable(0,"long","keyword");}
+#line 147 "la.l"
+{printf("Keyword int found\n"); addToTable(0,"int","keyword");}
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 143 "la.l"
-{printf("Keyword register found\n"); addToTable(0,"register","keyword");}
+#line 148 "la.l"
+{printf("Keyword long found\n"); addToTable(0,"long","keyword");}
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 144 "la.l"
-{printf("Keyword return found\n"); addToTable(0,"return","keyword");}
+#line 149 "la.l"
+{printf("Keyword register found\n"); addToTable(0,"register","keyword");}
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 145 "la.l"
-{printf("Keyword short found\n"); addToTable(0,"short","keyword");}
+#line 150 "la.l"
+{printf("Keyword return found\n"); addToTable(0,"return","keyword");}
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 146 "la.l"
-{printf("Keyword signed found\n"); addToTable(0,"signed","keyword");}
+#line 151 "la.l"
+{printf("Keyword short found\n"); addToTable(0,"short","keyword");}
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 147 "la.l"
-{printf("Keyword sizeof found\n"); addToTable(0,"sizeof","keyword");}
+#line 152 "la.l"
+{printf("Keyword signed found\n"); addToTable(0,"signed","keyword");}
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 148 "la.l"
-{printf("Keyword static found\n"); addToTable(0,"static","keyword");}
+#line 153 "la.l"
+{printf("Keyword sizeof found\n"); addToTable(0,"sizeof","keyword");}
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 149 "la.l"
-{printf("Keyword struct found\n"); addToTable(0,"struct","keyword");}
+#line 154 "la.l"
+{printf("Keyword static found\n"); addToTable(0,"static","keyword");}
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 150 "la.l"
-{printf("Keyword switch found\n"); addToTable(0,"switch","keyword");}
+#line 155 "la.l"
+{printf("Keyword struct found\n"); addToTable(0,"struct","keyword");}
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 151 "la.l"
-{printf("Keyword typedef found\n"); addToTable(0,"typedef","keyword");}
+#line 156 "la.l"
+{printf("Keyword switch found\n"); addToTable(0,"switch","keyword");}
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 152 "la.l"
-{printf("Keyword union found\n"); addToTable(0,"union","keyword");}
+#line 157 "la.l"
+{printf("Keyword typedef found\n"); addToTable(0,"typedef","keyword");}
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 153 "la.l"
-{printf("Keyword unsigned found\n"); addToTable(0,"unsigned","keyword");}
+#line 158 "la.l"
+{printf("Keyword union found\n"); addToTable(0,"union","keyword");}
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 154 "la.l"
-{printf("Keyword void found\n"); addToTable(0,"void","keyword");}
+#line 159 "la.l"
+{printf("Keyword unsigned found\n"); addToTable(0,"unsigned","keyword");}
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 155 "la.l"
-{printf("Keyword volatile found\n"); addToTable(0,"volatile","keyword");}
+#line 160 "la.l"
+{printf("Keyword void found\n"); addToTable(0,"void","keyword");}
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 156 "la.l"
-{printf("Keyword while found\n"); addToTable(0,"while","keyword");}
+#line 161 "la.l"
+{printf("Keyword volatile found\n"); addToTable(0,"volatile","keyword");}
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 157 "la.l"
-{printf("%s is a Keyword\n",yytext);}
+#line 162 "la.l"
+{printf("Keyword while found\n"); addToTable(0,"while","keyword");}
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 158 "la.l"
-{printf("%s is a Function\n",yytext); addToTable(0,yytext,"function");}
+#line 163 "la.l"
+{printf("%s is a Keyword\n",yytext);}
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 159 "la.l"
-{printf("%s is a Identifier\n", yytext); addToTable(0,yytext,"identifier");}
+#line 164 "la.l"
+{printf("%s is a Function\n",yytext); addToTable(0,yytext,"function");}
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 160 "la.l"
-{printf("%s is an Integer constant\n", yytext); addToTable(1,yytext,"integer");}
+#line 165 "la.l"
+{printf("%s is a Identifier\n", yytext); addToTable(0,yytext,"identifier");}
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 161 "la.l"
-{printf("%s is a floating point constant\n", yytext); addToTable(1,yytext,"float");}
+#line 166 "la.l"
+{printf("%s is an Integer constant\n", yytext); addToTable(1,yytext,"integer");}
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 162 "la.l"
-{printf("%s is an ill formed token\n", yytext);}
+#line 167 "la.l"
+{printf("%s is a floating point constant\n", yytext); addToTable(1,yytext,"float");}
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 163 "la.l"
-{printf("%s is an operator\n", yytext); addToTable(0,yytext,"operator");}
+#line 168 "la.l"
+{printf("%s is an ill formed token\n", yytext);}
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 164 "la.l"
-{printf("%s is an asssignment operator\n", yytext); addToTable(0,yytext,"assignment operator");}
+#line 169 "la.l"
+{printf("%s is an operator\n", yytext); addToTable(0,yytext,"operator");}
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 165 "la.l"
-{printf("%s is an arithmetic operator\n", yytext); addToTable(0,yytext,"arithmetic operator");}
+#line 170 "la.l"
+{printf("%s is an asssignment operator\n", yytext); addToTable(0,yytext,"assignment operator");}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 166 "la.l"
-{printf("%s is a special character\n",yytext);}
+#line 171 "la.l"
+{printf("%s is an arithmetic operator\n", yytext); addToTable(0,yytext,"arithmetic operator");}
 	YY_BREAK
 case 48:
-/* rule 48 can match eol */
 YY_RULE_SETUP
-#line 167 "la.l"
-{} 
+#line 172 "la.l"
+{printf("%s is a special character\n",yytext);}
 	YY_BREAK
 case 49:
+/* rule 49 can match eol */
 YY_RULE_SETUP
-#line 168 "la.l"
-{printf("Error: %s is an Illegal characters\n",yytext);}
+#line 173 "la.l"
+{} 
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 169 "la.l"
+#line 174 "la.l"
+{printf("Error: %s is an Illegal characters\n",yytext);}
+	YY_BREAK
+case 51:
+YY_RULE_SETUP
+#line 175 "la.l"
 ECHO;
 	YY_BREAK
-#line 1278 "lex.yy.c"
+#line 1303 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1461,7 +1486,7 @@ static int yy_get_next_buffer (void)
 
 	else
 		{
-			int num_to_read =
+			yy_size_t num_to_read =
 			YY_CURRENT_BUFFER_LVALUE->yy_buf_size - number_to_move - 1;
 
 		while ( num_to_read <= 0 )
@@ -1475,7 +1500,7 @@ static int yy_get_next_buffer (void)
 
 			if ( b->yy_is_our_buffer )
 				{
-				int new_size = b->yy_buf_size * 2;
+				yy_size_t new_size = b->yy_buf_size * 2;
 
 				if ( new_size <= 0 )
 					b->yy_buf_size += b->yy_buf_size / 8;
@@ -1488,7 +1513,7 @@ static int yy_get_next_buffer (void)
 				}
 			else
 				/* Can't grow it, we don't own it. */
-				b->yy_ch_buf = NULL;
+				b->yy_ch_buf = 0;
 
 			if ( ! b->yy_ch_buf )
 				YY_FATAL_ERROR(
@@ -1570,7 +1595,7 @@ static int yy_get_next_buffer (void)
 			if ( yy_current_state >= 234 )
 				yy_c = yy_meta[(unsigned int) yy_c];
 			}
-		yy_current_state = yy_nxt[yy_base[yy_current_state] + (flex_int16_t) yy_c];
+		yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
 		}
 
 	return yy_current_state;
@@ -1598,7 +1623,7 @@ static int yy_get_next_buffer (void)
 		if ( yy_current_state >= 234 )
 			yy_c = yy_meta[(unsigned int) yy_c];
 		}
-	yy_current_state = yy_nxt[yy_base[yy_current_state] + (flex_int16_t) yy_c];
+	yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
 	yy_is_jam = (yy_current_state == 233);
 
 		return yy_is_jam ? 0 : yy_current_state;
@@ -1618,7 +1643,7 @@ static int yy_get_next_buffer (void)
 	if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
 		{ /* need to shift things up to make room */
 		/* +2 for EOB chars. */
-		int number_to_move = (yy_n_chars) + 2;
+		yy_size_t number_to_move = (yy_n_chars) + 2;
 		char *dest = &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[
 					YY_CURRENT_BUFFER_LVALUE->yy_buf_size + 2];
 		char *source =
@@ -1630,7 +1655,7 @@ static int yy_get_next_buffer (void)
 		yy_cp += (int) (dest - source);
 		yy_bp += (int) (dest - source);
 		YY_CURRENT_BUFFER_LVALUE->yy_n_chars =
-			(yy_n_chars) = (int) YY_CURRENT_BUFFER_LVALUE->yy_buf_size;
+			(yy_n_chars) = YY_CURRENT_BUFFER_LVALUE->yy_buf_size;
 
 		if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
 			YY_FATAL_ERROR( "flex scanner push-back overflow" );
@@ -1669,7 +1694,7 @@ static int yy_get_next_buffer (void)
 
 		else
 			{ /* need more input */
-			int offset = (yy_c_buf_p) - (yytext_ptr);
+			yy_size_t offset = (yy_c_buf_p) - (yytext_ptr);
 			++(yy_c_buf_p);
 
 			switch ( yy_get_next_buffer(  ) )
@@ -1693,7 +1718,7 @@ static int yy_get_next_buffer (void)
 				case EOB_ACT_END_OF_FILE:
 					{
 					if ( yywrap( ) )
-						return 0;
+						return EOF;
 
 					if ( ! (yy_did_buffer_switch_on_eof) )
 						YY_NEW_FILE;
@@ -1941,7 +1966,7 @@ void yypop_buffer_state (void)
  */
 static void yyensure_buffer_stack (void)
 {
-	int num_to_alloc;
+	yy_size_t num_to_alloc;
     
 	if (!(yy_buffer_stack)) {
 
@@ -1949,15 +1974,15 @@ static void yyensure_buffer_stack (void)
 		 * scanner will even need a stack. We use 2 instead of 1 to avoid an
 		 * immediate realloc on the next call.
          */
-      num_to_alloc = 1; /* After all that talk, this was set to 1 anyways... */
+		num_to_alloc = 1; /* After all that talk, this was set to 1 anyways... */
 		(yy_buffer_stack) = (struct yy_buffer_state**)yyalloc
 								(num_to_alloc * sizeof(struct yy_buffer_state*)
 								);
 		if ( ! (yy_buffer_stack) )
 			YY_FATAL_ERROR( "out of dynamic memory in yyensure_buffer_stack()" );
-
+								  
 		memset((yy_buffer_stack), 0, num_to_alloc * sizeof(struct yy_buffer_state*));
-
+				
 		(yy_buffer_stack_max) = num_to_alloc;
 		(yy_buffer_stack_top) = 0;
 		return;
@@ -1986,7 +2011,7 @@ static void yyensure_buffer_stack (void)
  * @param base the character buffer
  * @param size the size in bytes of the character buffer
  * 
- * @return the newly allocated buffer state object.
+ * @return the newly allocated buffer state object. 
  */
 YY_BUFFER_STATE yy_scan_buffer  (char * base, yy_size_t  size )
 {
@@ -1996,7 +2021,7 @@ YY_BUFFER_STATE yy_scan_buffer  (char * base, yy_size_t  size )
 	     base[size-2] != YY_END_OF_BUFFER_CHAR ||
 	     base[size-1] != YY_END_OF_BUFFER_CHAR )
 		/* They forgot to leave room for the EOB's. */
-		return NULL;
+		return 0;
 
 	b = (YY_BUFFER_STATE) yyalloc(sizeof( struct yy_buffer_state )  );
 	if ( ! b )
@@ -2005,7 +2030,7 @@ YY_BUFFER_STATE yy_scan_buffer  (char * base, yy_size_t  size )
 	b->yy_buf_size = size - 2;	/* "- 2" to take care of EOB's */
 	b->yy_buf_pos = b->yy_ch_buf = base;
 	b->yy_is_our_buffer = 0;
-	b->yy_input_file = NULL;
+	b->yy_input_file = 0;
 	b->yy_n_chars = b->yy_buf_size;
 	b->yy_is_interactive = 0;
 	b->yy_at_bol = 1;
@@ -2028,7 +2053,7 @@ YY_BUFFER_STATE yy_scan_buffer  (char * base, yy_size_t  size )
 YY_BUFFER_STATE yy_scan_string (yyconst char * yystr )
 {
     
-	return yy_scan_bytes(yystr,(int) strlen(yystr) );
+	return yy_scan_bytes(yystr,strlen(yystr) );
 }
 
 /** Setup the input buffer state to scan the given bytes. The next call to yylex() will
@@ -2038,7 +2063,7 @@ YY_BUFFER_STATE yy_scan_string (yyconst char * yystr )
  * 
  * @return the newly allocated buffer state object.
  */
-YY_BUFFER_STATE yy_scan_bytes  (yyconst char * yybytes, int  _yybytes_len )
+YY_BUFFER_STATE yy_scan_bytes  (yyconst char * yybytes, yy_size_t  _yybytes_len )
 {
 	YY_BUFFER_STATE b;
 	char *buf;
@@ -2046,7 +2071,7 @@ YY_BUFFER_STATE yy_scan_bytes  (yyconst char * yybytes, int  _yybytes_len )
 	yy_size_t i;
     
 	/* Get memory for full buffer, including space for trailing EOB's. */
-	n = (yy_size_t) _yybytes_len + 2;
+	n = _yybytes_len + 2;
 	buf = (char *) yyalloc(n  );
 	if ( ! buf )
 		YY_FATAL_ERROR( "out of dynamic memory in yy_scan_bytes()" );
@@ -2072,7 +2097,7 @@ YY_BUFFER_STATE yy_scan_bytes  (yyconst char * yybytes, int  _yybytes_len )
 #define YY_EXIT_FAILURE 2
 #endif
 
-static void yynoreturn yy_fatal_error (yyconst char* msg )
+static void yy_fatal_error (yyconst char* msg )
 {
 			(void) fprintf( stderr, "%s\n", msg );
 	exit( YY_EXIT_FAILURE );
@@ -2102,7 +2127,7 @@ static void yynoreturn yy_fatal_error (yyconst char* msg )
  */
 int yyget_lineno  (void)
 {
-    
+        
     return yylineno;
 }
 
@@ -2125,7 +2150,7 @@ FILE *yyget_out  (void)
 /** Get the length of the current token.
  * 
  */
-int yyget_leng  (void)
+yy_size_t yyget_leng  (void)
 {
         return yyleng;
 }
@@ -2181,10 +2206,10 @@ static int yy_init_globals (void)
      * This function is called from yylex_destroy(), so don't allocate here.
      */
 
-    (yy_buffer_stack) = NULL;
+    (yy_buffer_stack) = 0;
     (yy_buffer_stack_top) = 0;
     (yy_buffer_stack_max) = 0;
-    (yy_c_buf_p) = NULL;
+    (yy_c_buf_p) = (char *) 0;
     (yy_init) = 0;
     (yy_start) = 0;
 
@@ -2193,8 +2218,8 @@ static int yy_init_globals (void)
     yyin = stdin;
     yyout = stdout;
 #else
-    yyin = NULL;
-    yyout = NULL;
+    yyin = (FILE *) 0;
+    yyout = (FILE *) 0;
 #endif
 
     /* For future reference: Set errno on error, since we are called by
@@ -2252,7 +2277,7 @@ static int yy_flex_strlen (yyconst char * s )
 
 void *yyalloc (yy_size_t  size )
 {
-			return malloc(size);
+			return (void *) malloc( size );
 }
 
 void *yyrealloc  (void * ptr, yy_size_t  size )
@@ -2265,7 +2290,7 @@ void *yyrealloc  (void * ptr, yy_size_t  size )
 	 * any pointer type to void*, and deal with argument conversions
 	 * as though doing an assignment.
 	 */
-	return realloc(ptr, size);
+	return (void *) realloc( (char *) ptr, size );
 }
 
 void yyfree (void * ptr )
@@ -2275,7 +2300,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 169 "la.l"
+#line 175 "la.l"
 
 
 int main()

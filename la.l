@@ -71,6 +71,7 @@
 		printf("\n\nSYMBOL TABLE:\n");
 		printf("-------------------------------------------------------------------\n");
 		printf("%*s\t|\t%*s\t|\t%*s\n", 10, "INDEX", 10, "SYMBOL", 10, "ATTRIBUTE");
+		printf("-------------------------------------------------------------------\n");
 		for(;k<size;k++)
 		{
 			struct symbolTable *temp = hash[0][k];
@@ -80,10 +81,12 @@
 				temp = temp->next;
 			}
 		}
+		printf("-------------------------------------------------------------------\n");
 		k=0;
 		printf("\n\nCONSTANT TABLE:\n");
 		printf("-------------------------------------------------------------------\n");
 		printf("%*s\t|\t%*s\t|\t%*s\n", 10, "INDEX", 10, "SYMBOL", 10, "ATTRIBUTE");
+		printf("-------------------------------------------------------------------\n");
 		for(;k<size;k++)
 		{
 			struct symbolTable *temp = hash[1][k];
@@ -93,6 +96,7 @@
 				temp = temp->next;
 			}
 		}
+		printf("-------------------------------------------------------------------\n");
 	}
 %}
 
@@ -101,6 +105,7 @@ singleLineComment \/\/.*
 multilineComment "/*"([^*]|\*+[^*/])*\*+"/"
 multilineCommentError "/*"([^*]|\*+[^*/])*
 str \"[^\"]*\"
+strError \"[^\"]*
 letter [a-zA-Z]
 digit [0-9]
 nonIdentifier ({digit})+(_|{letter})(_|{letter}|{digit})*
@@ -118,6 +123,7 @@ specialCharacters \;|\{|\}|\(|\)|\[|\]|,
 whitespaces [\ ]|[\n]|[\t]
 %%
 {multilineCommentError} {printf("ERROR: Multiline comment is not closed\n");}
+{strError} {printf("ERROR: String is not closed\n");}
 {singleLineComment} {}
 {multilineComment} {}
 {headerFile} {printf("Header file found\n");}

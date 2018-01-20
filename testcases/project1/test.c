@@ -1,11 +1,12 @@
 #include <stdio.h>
+#include <stdio.h>
 
 //This is a test case with no errors
 /*This includes various corner cases like 
 having a multi line
 comment*/
 
-//It also detects loops and nested loops
+//It also detects loops
 
 
 void printMatrix(int x,int y)

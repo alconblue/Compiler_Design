@@ -169,9 +169,9 @@ while {printf("Keyword while found\n"); addToTable(0,"while","keyword");}
 {identifier} {printf("%s is a Identifier\n", yytext); addToTable(0,yytext,"identifier");}
 {integer} {printf("%s is an Integer constant\n", yytext); addToTable(1,yytext,"integer");}
 {float} {printf("%s is a floating point constant\n", yytext); addToTable(1,yytext,"float");}
-{nonIdentifier} {printf("%s is an ill formed token\n", yytext);}
+{nonIdentifier} {printf("ERROR: %s is an ill formed token\n", yytext);}
 {operator} {printf("%s is an operator\n", yytext); addToTable(0,yytext,"operator");}
-{assignmentOperator} {printf("%s is an asssignment operator\n", yytext); addToTable(0,yytext,"assignment operator");}
+{assignmentOperator} {printf("%s is an assignment operator\n", yytext); addToTable(0,yytext,"assignment operator");}
 {arithmeticOperator} {printf("%s is an arithmetic operator\n", yytext); addToTable(0,yytext,"arithmetic operator");}
 {specialCharacters} {printf("%s is a special character\n",yytext);}
 {whitespaces} {} 
@@ -180,7 +180,7 @@ while {printf("Keyword while found\n"); addToTable(0,"while","keyword");}
 int main()
 {
 	init();
-	yyin=fopen("testcases/test4.c","r");
+	yyin=fopen("testcases/test.c","r");
 	yylex();
 	display();
 }

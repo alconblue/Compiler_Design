@@ -44,7 +44,7 @@ The symbol table consists of three columns after the lexical analysis phase.
 2) Lexeme
 3) Token type
 
-## What out scanner covers
+## What our scanner covers
 1) Data types - int, float, double, long , short
 2) Control structures - while loop, if else
 3) Single and multiline comments

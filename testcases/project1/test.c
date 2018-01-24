@@ -9,7 +9,7 @@ comment*/
 //It also detects loops
 
 
-void printMatrix(int x,int y)
+void print(int x,int y)
 {
 	int i=0,j=0;
 
@@ -42,6 +42,6 @@ void printMatrix(int x,int y)
 
 int main()
 {
-	printMatrix(5,10);
+	print(5,10);
 	return 0;
 }

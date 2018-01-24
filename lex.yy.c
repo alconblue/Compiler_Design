@@ -733,14 +733,14 @@ char *yytext;
 		int k=0;
 		printf("\n\nSYMBOL TABLE:\n");
 		printf("-------------------------------------------------------------------\n");
-		printf("%*s\t|\t%*s\t|\t%*s\n", 10, "INDEX", 10, "SYMBOL", 10, "ATTRIBUTE");
+		printf("%*s\t|\t%*s\t|\t%*s\n", 10, "INDEX", 20, "SYMBOL", 10, "ATTRIBUTE");
 		printf("-------------------------------------------------------------------\n");
 		for(;k<size;k++)
 		{
 			struct symbolTable *temp = hash[0][k];
 			while(temp!=NULL)
 			{
-				printf("%*d\t|\t%*s\t|\t%*s\n",10, temp->index, 10, temp->symbol, 10, temp->attribute);
+				printf("%*d\t|\t%*s\t|\t%*s\n",10, temp->index, 20, temp->symbol, 10, temp->attribute);
 				temp = temp->next;
 			}
 		}
@@ -2310,7 +2310,7 @@ void yyfree (void * ptr )
 int main()
 {
 	init();
-	yyin=fopen("testcases/test5.c","r");
+	yyin=fopen("testcases/project1/test5.c","r");
 	yylex();
 	display();
 }

@@ -1,0 +1,11 @@
+#include <stdio.h>
+
+//This testcase has missing paranthesis
+
+int main()
+{
+	int i=0;
+	if(i == 5
+		printf("True");
+	return 0;
+}

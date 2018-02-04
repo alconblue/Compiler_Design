@@ -1,0 +1,13 @@
+#include <stdio.h>
+
+//This testcase handles the shift reduce conflict occuring due to dangling else problem
+
+int main()
+{
+	int i = 0;
+	if(i==1)
+	if(i==2)
+		printf("2");
+	else
+		printf("none")
+}

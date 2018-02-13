@@ -5,9 +5,7 @@
 %token SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
 %token XOR_ASSIGN OR_ASSIGN 
 
-%token SHORT INT LONG FLOAT DOUBLE 
-
-%token IF ELSE WHILE BREAK RETURN
+%token AUTO BREAK CASE CHAR CONST CONTINUE DEFAULT DO DOUBLE ELSE ENUM EXTERN FLOAT FOR GOTO IF INT LONG REGISTER RETURN SHORT SIGNED SIZEOF STATIC STRUCT SWITCH TYPEDEF UNION UNSIGNED VOID VOLATILE WHILE
 
 %%
 
@@ -99,7 +97,13 @@ postfix_expression
 	| postfix_expression '.' ID
 	| postfix_expression INC
 	| postfix_expression DEC
-	;			   
+	;
+
+argument_expression_list
+	: assignment_expression
+	| argument_expression_list ',' assignment_expression
+	;
+					   
 unary_expression
 	: postfix_expression
 	| INC unary_expression

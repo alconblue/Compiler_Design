@@ -170,36 +170,35 @@ while {printf("Keyword while found\n"); addToTable(0,"while","keyword"); return 
 {integer} {printf("%s is an Integer constant\n", yytext); addToTable(1,yytext,"integer"); return CONSTANT;}
 {float} {printf("%s is a floating point constant\n", yytext); addToTable(1,yytext,"float"); return CONSTANT;}
 {nonIdentifier} {printf("ERROR: %s is an ill formed token\n", yytext);}
-{operator} {printf("%s is an operator\n", yytext); addToTable(0,yytext,"operator");}
 
 "+="  {printf("%s is addition assignment operator\n", yytext); addToTable(0,yytext,"addition assignment operator"); return ADD_ASSIGN;}
 "-="  {printf("%s is subtraction assignment operator\n", yytext); addToTable(0,yytext,"sub assignment operator"); return SUB_ASSIGN;}
 "*="  {printf("%s is multiplication assignment operator\n", yytext); addToTable(0,yytext,"mul assignment operator"); return MUL_ASSIGN;}
 "/="  {printf("%s is division assignment operator\n", yytext); addToTable(0,yytext,"div assignment operator"); return DIV_ASSIGN;}
 "%="  {printf("%s is mod assignment operator\n", yytext); addToTable(0,yytext,"mod assignment operator"); return MOD_ASSIGN;}
-">>=" {printf("%s is left shift assignment operator\n", yytext); addToTable(0,yytext,"left-shift assignment operator"); return LS_ASSIGN;} 
-"<<=" {printf("%s is right shift assignment operator\n", yytext); addToTable(0,yytext,"right-shift assignment operator"); return RS_ASSIGN;}
-"&="  {printf("%s is bitwise And assignment operator\n", yytext); addToTable(0,yytext,"bit-and-assignment operator"); return BIT_AND_ASSIGN;}
-"^="
-"|="
-"++"
-"--"
-"=="
-"!="
-">"
-"<"
-">="
-"<="
-"||"
-"&&"
-"!"
-"&"
-"|"
-"^"
-"~"
-"<<"
-">>"
-"?"
+">>=" {printf("%s is left shift assignment operator\n", yytext); addToTable(0,yytext,"left-shift assignment operator"); return LEFT_ASSIGN;} 
+"<<=" {printf("%s is right shift assignment operator\n", yytext); addToTable(0,yytext,"right-shift assignment operator"); return RIGHT_ASSIGN;}
+"&="  {printf("%s is bitwise And assignment operator\n", yytext); addToTable(0,yytext,"bit-and-assignment operator"); return AND_ASSIGN;}
+"^="  {printf("%s is bitwise Xor assignment operator\n", yytext); addToTable(0,yytext,"bit-xor-assignment operator"); return XOR_ASSIGN;}
+"|="  {printf("%s is bitwise Or assignment operator\n", yytext); addToTable(0,yytext,"bit-or-assignment operator"); return OR_ASSIGN;}
+"++"  {printf("%s is increment operator\n",yytext); addToTable(0,yytext,"increment operator"); return INC;}
+"--"  {printf("%s is decrement operator\n", yytext); addToTable(0,yytext,"decrement operator"); return DEC;}
+"=="  {printf("%s is equal comparator\n", yytext); addToTable(0,yytext,"equal comparison operator"); return EQ;}
+"!="  {printf("%s is not equal comparator\n", yytext); addToTable(0,yytext,"not equal operator"); return NE;}
+">"   {printf("%s is less than comparator\n", yytext); addToTable(0,yytext,"less than operator"); return LT;}
+"<"   {printf("%s is greater than comparator\n", yytext); addToTable(0,yytext,"greater than operator"); return GT;}
+">="  {printf("%s is greater than equal\n", yytext); addToTable(0,yytext,"greater or equal"); return GE;} 
+"<="  {printf("%s is less than equal\n", yytext); addToTable(0,yytext,"less or equal"); return LE;}
+"||"  {printf("%s is logical or operator\n", yytext); addToTable(0,yytext,"logical or"); return OR;}
+"&&"  {printf("%s is logical and operator\n", yytext); addToTable(0,yytext,"logical and"); return AND;} 
+"!"   {printf("%s is not operator\n", yytext); addToTable(0,yytext,"not operator"); return NOT;}
+"&"	  {printf("%s is and operator\n", yytext); addToTable(0,yytext,"and operator"); return AND;}
+"|"   {printf("%s is or operator\n", yytext); addToTable(0,yytext,"or operator"); return OR;} 
+"^"   {printf("%s is xor operator\n", yytext); addToTable(0,yytext,"xor operator"); return XOR;}
+"~"   {printf("%s is bitwise not\n", yytext); addToTable(0,yytext,"bit-not"); return BN;}
+"<<"  {printf("%s is left shift operator\n", yytext); addToTable(0,yytext,"left shift operator"); return LEFT;}
+">>"  {printf("%s is right shift operator\n", yytext); addToTable(0,yytext,"right shift operator"); return RIGHT;}
+"?"   {printf("%s is conditional operator\n", yytext); addToTable(0,yytext,"conditional operator"); return COND;}
 
 
 

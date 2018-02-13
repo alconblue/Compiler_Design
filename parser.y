@@ -5,11 +5,11 @@
 %token SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
 %token XOR_ASSIGN OR_ASSIGN 
 
-%token AUTO BREAK CASE CHAR CONST CONTINUE DEFAULT DO DOUBLE ELSE ENUM EXTERN FLOAT FOR GOTO IF INT LONG REGISTER RETURN SHORT SIGNED SIZEOF STATIC STRUCT SWITCH TYPEDEF UNION UNSIGNED VOID VOLATILE WHILE
+%token AUTO BREAK CASE CHAR CONST CONTINUE DEFAULT DO DOUBLE ELSE ENUM EXTERN FLOAT FOR GOTO IF INT LONG %token REGISTER RETURN SHORT SIGNED SIZEOF STATIC STRUCT SWITCH TYPEDEF UNION UNSIGNED VOID VOLATILE WHILE
 
 %%
 
-	/*The supported datatypes*/
+/*The supported datatypes*/
 dataType : SHORT 
 		 | INT 
 		 | LONG 
@@ -43,8 +43,8 @@ declarationAndAssignment : dataType ID EQ CONSTANT
 					     | dataType ID EQ STR 
 					     ;		   
 declarationStatementError : declaration 
-					 | declarationAndAssignment 
-					 ;						     
+					 	  | declarationAndAssignment 
+					 	  ;						     
 
 
 
@@ -110,7 +110,7 @@ unary_expression
 	| DEC unary_expression
 	| unary_operator cast_expression
 	| SIZEOF unary_expression
-	| SIZEOF '(' type_name ')'
+	| SIZEOF '(' dataType ')'
 	;
 unary_operator
 	: '&'
@@ -122,7 +122,7 @@ unary_operator
 	;
 cast_expression
 	: unary_expression
-	| '(' type_name ')' cast_expression
+	| '(' dataType ')' cast_expression
 	;
 multiplicative_expression
 	: cast_expression
@@ -192,20 +192,17 @@ assignment_operator
 	| AND_ASSIGN
 	| XOR_ASSIGN
 	| OR_ASSIGN
-	;
-
+;
 
 
 	/*Jump statements include continue,break and return statements*/
 jumpStatement : CONTINUE ';'
 			  | BREAK ';'
 			  | RETURN ';'
-			  | RETURN expression ';'
 			  ;
 jumpStatementError : CONTINUE 
 			       | BREAK 
 			       | RETURN 
-			       | RETURN expression
 			       ;			  
 
 

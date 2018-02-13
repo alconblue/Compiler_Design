@@ -2,6 +2,7 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <string.h>
+	#include "y.tab.h"
 	int size=20;
 	int globalIndex=0;
 	struct symbolTable{
@@ -136,9 +137,9 @@ auto {printf("Keyword auto found\n"); addToTable(0,"auto","keyword"); return AUT
 break {printf("Keyword break found\n"); addToTable(0,"break", "keyword"); return BREAK;}
 case {printf("Keyword case found\n"); addToTable(0,"case", "keyword"); return CASE;}
 char {printf("Keyword char found\n"); addToTable(0,"char", "keyword"); return CHAR;}
-const {printf("Keyword const found\n"); addToTable(0,"const", "keyword"); return CONST}
+const {printf("Keyword const found\n"); addToTable(0,"const", "keyword"); return CONST;}
 continue {printf("Keyword continue found\n"); addToTable(0,"continue", "keyword"); return CONTINUE;}
-default {printf("Keyword default found\n"); addToTable(0,"default", "keyword"); return KEYWORD;}
+default {printf("Keyword default found\n"); addToTable(0,"default", "keyword");}
 do {printf("Keyword do found\n"); addToTable(0,"do","keyword"); return DO;}
 double {printf("Keyword double found\n"); addToTable(0,"double","keyword"); return DOUBLE;}
 else {printf("Keyword else found\n"); addToTable(0,"else","keyword"); return ELSE;}
@@ -152,7 +153,7 @@ int {printf("Keyword int found\n"); addToTable(0,"int","keyword"); return INT;}
 long {printf("Keyword long found\n"); addToTable(0,"long","keyword"); return LONG;}
 register {printf("Keyword register found\n"); addToTable(0,"register","keyword"); return REGISTER;}
 return {printf("Keyword return found\n"); addToTable(0,"return","keyword"); return RETURN;}
-short {printf("Keyword short found\n"); addToTable(0,"short","keyword"); retrun SHORT;}
+short {printf("Keyword short found\n"); addToTable(0,"short","keyword"); return SHORT;}
 signed {printf("Keyword signed found\n"); addToTable(0,"signed","keyword"); return SIGNED;}
 sizeof {printf("Keyword sizeof found\n"); addToTable(0,"sizeof","keyword"); return SIZEOF;}
 static {printf("Keyword static found\n"); addToTable(0,"static","keyword"); return STATIC;}
@@ -184,40 +185,25 @@ while {printf("Keyword while found\n"); addToTable(0,"while","keyword"); return 
 "++"  {printf("%s is increment operator\n",yytext); addToTable(0,yytext,"increment operator"); return INC;}
 "--"  {printf("%s is decrement operator\n", yytext); addToTable(0,yytext,"decrement operator"); return DEC;}
 "=="  {printf("%s is equal comparator\n", yytext); addToTable(0,yytext,"equal comparison operator"); return EQ;}
-"!="  {printf("%s is not equal comparator\n", yytext); addToTable(0,yytext,"not equal operator"); return NE;}
-">"   {printf("%s is less than comparator\n", yytext); addToTable(0,yytext,"less than operator"); return LT;}
-"<"   {printf("%s is greater than comparator\n", yytext); addToTable(0,yytext,"greater than operator"); return GT;}
+"!="  {printf("%s is not equal comparator\n", yytext); addToTable(0,yytext,"not equal operator");}
+">"   {printf("%s is less than comparator\n", yytext); addToTable(0,yytext,"less than operator");}
+"<"   {printf("%s is greater than comparator\n", yytext); addToTable(0,yytext,"greater than operator");}
 ">="  {printf("%s is greater than equal\n", yytext); addToTable(0,yytext,"greater or equal"); return GE;} 
 "<="  {printf("%s is less than equal\n", yytext); addToTable(0,yytext,"less or equal"); return LE;}
 "||"  {printf("%s is logical or operator\n", yytext); addToTable(0,yytext,"logical or"); return OR;}
 "&&"  {printf("%s is logical and operator\n", yytext); addToTable(0,yytext,"logical and"); return AND;} 
-"!"   {printf("%s is not operator\n", yytext); addToTable(0,yytext,"not operator"); return NOT;}
-"&"	  {printf("%s is and operator\n", yytext); addToTable(0,yytext,"and operator"); return AND;}
-"|"   {printf("%s is or operator\n", yytext); addToTable(0,yytext,"or operator"); return OR;} 
-"^"   {printf("%s is xor operator\n", yytext); addToTable(0,yytext,"xor operator"); return XOR;}
-"~"   {printf("%s is bitwise not\n", yytext); addToTable(0,yytext,"bit-not"); return BN;}
+"!"   {printf("%s is not operator\n", yytext); addToTable(0,yytext,"not operator");}
+"&"	  {printf("%s is and operator\n", yytext); addToTable(0,yytext,"and operator");}
+"|"   {printf("%s is or operator\n", yytext); addToTable(0,yytext,"or operator");} 
+"^"   {printf("%s is xor operator\n", yytext); addToTable(0,yytext,"xor operator");}
+"~"   {printf("%s is bitwise not\n", yytext); addToTable(0,yytext,"bit-not");}
 "<<"  {printf("%s is left shift operator\n", yytext); addToTable(0,yytext,"left shift operator"); return LEFT;}
 ">>"  {printf("%s is right shift operator\n", yytext); addToTable(0,yytext,"right shift operator"); return RIGHT;}
-"?"   {printf("%s is conditional operator\n", yytext); addToTable(0,yytext,"conditional operator"); return COND;}
-
-
-
-
-
+"?"   {printf("%s is conditional operator\n", yytext); addToTable(0,yytext,"conditional operator");}
 {assignmentOperator} {printf("%s is an assignment operator\n", yytext); addToTable(0,yytext,"assignment operator");}
 {arithmeticOperator} {printf("%s is an arithmetic operator\n", yytext); addToTable(0,yytext,"arithmetic operator");}
 {specialCharacters} {printf("%s is a special character\n",yytext);}
 {whitespaces} {} 
 . {printf("Error: %s is an Illegal characters\n",yytext);}
 %%
-int main()
-{
-	init();
-	yyin=fopen("testcases/project1/test5.c","r");
-	yylex();
-	display();
-}
-int yywrap()
-{
-	return(1);
-}
+

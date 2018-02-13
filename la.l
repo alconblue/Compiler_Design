@@ -70,14 +70,14 @@
 		int k=0;
 		printf("\n\nSYMBOL TABLE:\n");
 		printf("-------------------------------------------------------------------\n");
-		printf("%*s\t|\t%*s\t|\t%*s\n", 10, "INDEX", 20, "SYMBOL", 10, "ATTRIBUTE");
+		printf("%*s\t|\t%*s\t|\t%*s\n", 10, "INDEX", 10, "SYMBOL", 10, "ATTRIBUTE");
 		printf("-------------------------------------------------------------------\n");
 		for(;k<size;k++)
 		{
 			struct symbolTable *temp = hash[0][k];
 			while(temp!=NULL)
 			{
-				printf("%*d\t|\t%*s\t|\t%*s\n",10, temp->index, 20, temp->symbol, 10, temp->attribute);
+				printf("%*d\t|\t%*s\t|\t%*s\n",10, temp->index, 10, temp->symbol, 10, temp->attribute);
 				temp = temp->next;
 			}
 		}
@@ -126,51 +126,85 @@ whitespaces [\ ]|[\n]|[\t]
 {strError} {printf("ERROR: String is not closed\n");}
 {singleLineComment} {}
 {multilineComment} {}
-{headerFile} {printf("Header file found\n");}
+{headerFile} {printf("Header file found\n"); return HEADERFILE;}
 {str} {
 		char *te = (char *)malloc(strlen(yytext)-1);
 		int l = strlen(yytext);
 		strncpy(te, yytext + 1, l-2);
-		printf("%s %d- String constant\n", te, l); addToTable(1,te,"String");}
-auto {printf("Keyword auto found\n"); addToTable(0,"auto","keyword");}
-break {printf("Keyword break found\n"); addToTable(0,"break", "keyword");}
-case {printf("Keyword case found\n"); addToTable(0,"case", "keyword");}
-char {printf("Keyword char found\n"); addToTable(0,"char", "keyword");}
-const {printf("Keyword const found\n"); addToTable(0,"const", "keyword");}
-continue {printf("Keyword continue found\n"); addToTable(0,"continue", "keyword");}
-default {printf("Keyword default found\n"); addToTable(0,"default", "keyword");}
-do {printf("Keyword do found\n"); addToTable(0,"do","keyword");}
-double {printf("Keyword double found\n"); addToTable(0,"double","keyword");}
-else {printf("Keyword else found\n"); addToTable(0,"else","keyword");}
-enum {printf("Keyword enum found\n"); addToTable(0,"enum","keyword");}
-extern {printf("Keyword extern found\n"); addToTable(0,"extern","keyword");}
-float {printf("Keyword float found\n"); addToTable(0,"float","keyword");}
-for {printf("Keyword for found\n"); addToTable(0,"for","keyword");}
-goto {printf("Keyword goto found\n"); addToTable(0,"goto","keyword");}
-if {printf("Keyword if found\n"); addToTable(0,"if","keyword");}
-int {printf("Keyword int found\n"); addToTable(0,"int","keyword");}
-long {printf("Keyword long found\n"); addToTable(0,"long","keyword");}
-register {printf("Keyword register found\n"); addToTable(0,"register","keyword");}
-return {printf("Keyword return found\n"); addToTable(0,"return","keyword");}
-short {printf("Keyword short found\n"); addToTable(0,"short","keyword");}
-signed {printf("Keyword signed found\n"); addToTable(0,"signed","keyword");}
-sizeof {printf("Keyword sizeof found\n"); addToTable(0,"sizeof","keyword");}
-static {printf("Keyword static found\n"); addToTable(0,"static","keyword");}
-struct {printf("Keyword struct found\n"); addToTable(0,"struct","keyword");}
-switch {printf("Keyword switch found\n"); addToTable(0,"switch","keyword");}
-typedef {printf("Keyword typedef found\n"); addToTable(0,"typedef","keyword");}
-union {printf("Keyword union found\n"); addToTable(0,"union","keyword");}
-unsigned {printf("Keyword unsigned found\n"); addToTable(0,"unsigned","keyword");}
-void {printf("Keyword void found\n"); addToTable(0,"void","keyword");}
-volatile {printf("Keyword volatile found\n"); addToTable(0,"volatile","keyword");}
-while {printf("Keyword while found\n"); addToTable(0,"while","keyword");}
+		printf("%s %d- String constant\n", te, l); addToTable(1,te,"String"); return STR;}
+auto {printf("Keyword auto found\n"); addToTable(0,"auto","keyword"); return AUTO;}
+break {printf("Keyword break found\n"); addToTable(0,"break", "keyword"); return BREAK;}
+case {printf("Keyword case found\n"); addToTable(0,"case", "keyword"); return CASE;}
+char {printf("Keyword char found\n"); addToTable(0,"char", "keyword"); return CHAR;}
+const {printf("Keyword const found\n"); addToTable(0,"const", "keyword"); return CONST}
+continue {printf("Keyword continue found\n"); addToTable(0,"continue", "keyword"); return CONTINUE;}
+default {printf("Keyword default found\n"); addToTable(0,"default", "keyword"); return KEYWORD;}
+do {printf("Keyword do found\n"); addToTable(0,"do","keyword"); return DO;}
+double {printf("Keyword double found\n"); addToTable(0,"double","keyword"); return DOUBLE;}
+else {printf("Keyword else found\n"); addToTable(0,"else","keyword"); return ELSE;}
+enum {printf("Keyword enum found\n"); addToTable(0,"enum","keyword"); return ENUM;}
+extern {printf("Keyword extern found\n"); addToTable(0,"extern","keyword"); return EXTERN;}
+float {printf("Keyword float found\n"); addToTable(0,"float","keyword"); return FLOAT;}
+for {printf("Keyword for found\n"); addToTable(0,"for","keyword"); return FOR;}
+goto {printf("Keyword goto found\n"); addToTable(0,"goto","keyword"); return GOTO;}
+if {printf("Keyword if found\n"); addToTable(0,"if","keyword"); return IF;}
+int {printf("Keyword int found\n"); addToTable(0,"int","keyword"); return INT;}
+long {printf("Keyword long found\n"); addToTable(0,"long","keyword"); return LONG;}
+register {printf("Keyword register found\n"); addToTable(0,"register","keyword"); return REGISTER;}
+return {printf("Keyword return found\n"); addToTable(0,"return","keyword"); return RETURN;}
+short {printf("Keyword short found\n"); addToTable(0,"short","keyword"); retrun SHORT;}
+signed {printf("Keyword signed found\n"); addToTable(0,"signed","keyword"); return SIGNED;}
+sizeof {printf("Keyword sizeof found\n"); addToTable(0,"sizeof","keyword"); return SIZEOF;}
+static {printf("Keyword static found\n"); addToTable(0,"static","keyword"); return STATIC;}
+struct {printf("Keyword struct found\n"); addToTable(0,"struct","keyword"); return STRUCT;}
+switch {printf("Keyword switch found\n"); addToTable(0,"switch","keyword"); return SWITCH;}
+typedef {printf("Keyword typedef found\n"); addToTable(0,"typedef","keyword"); return TYPEDEF;}
+union {printf("Keyword union found\n"); addToTable(0,"union","keyword"); return UNION;}
+unsigned {printf("Keyword unsigned found\n"); addToTable(0,"unsigned","keyword"); return UNSIGNED;}
+void {printf("Keyword void found\n"); addToTable(0,"void","keyword"); return VOID;}
+volatile {printf("Keyword volatile found\n"); addToTable(0,"volatile","keyword"); return VOLATILE;}
+while {printf("Keyword while found\n"); addToTable(0,"while","keyword"); return WHILE;}
 {keyword} {printf("%s is a Keyword\n",yytext);}
 {function} {printf("%s is a Function\n",yytext); addToTable(0,yytext,"function");}
-{identifier} {printf("%s is a Identifier\n", yytext); addToTable(0,yytext,"identifier");}
-{integer} {printf("%s is an Integer constant\n", yytext); addToTable(1,yytext,"integer");}
-{float} {printf("%s is a floating point constant\n", yytext); addToTable(1,yytext,"float");}
+{identifier} {printf("%s is a Identifier\n", yytext); addToTable(0,yytext,"identifier"); return ID;}
+{integer} {printf("%s is an Integer constant\n", yytext); addToTable(1,yytext,"integer"); return CONSTANT;}
+{float} {printf("%s is a floating point constant\n", yytext); addToTable(1,yytext,"float"); return CONSTANT;}
 {nonIdentifier} {printf("ERROR: %s is an ill formed token\n", yytext);}
 {operator} {printf("%s is an operator\n", yytext); addToTable(0,yytext,"operator");}
+
+"+="  {printf("%s is addition assignment operator\n", yytext); addToTable(0,yytext,"addition assignment operator"); return ADD_ASSIGN;}
+"-="  {printf("%s is subtraction assignment operator\n", yytext); addToTable(0,yytext,"sub assignment operator"); return SUB_ASSIGN;}
+"*="  {printf("%s is multiplication assignment operator\n", yytext); addToTable(0,yytext,"mul assignment operator"); return MUL_ASSIGN;}
+"/="  {printf("%s is division assignment operator\n", yytext); addToTable(0,yytext,"div assignment operator"); return DIV_ASSIGN;}
+"%="  {printf("%s is mod assignment operator\n", yytext); addToTable(0,yytext,"mod assignment operator"); return MOD_ASSIGN;}
+">>=" {printf("%s is left shift assignment operator\n", yytext); addToTable(0,yytext,"left-shift assignment operator"); return LS_ASSIGN;} 
+"<<=" {printf("%s is right shift assignment operator\n", yytext); addToTable(0,yytext,"right-shift assignment operator"); return RS_ASSIGN;}
+"&="  {printf("%s is bitwise And assignment operator\n", yytext); addToTable(0,yytext,"bit-and-assignment operator"); return BIT_AND_ASSIGN;}
+"^="
+"|="
+"++"
+"--"
+"=="
+"!="
+">"
+"<"
+">="
+"<="
+"||"
+"&&"
+"!"
+"&"
+"|"
+"^"
+"~"
+"<<"
+">>"
+"?"
+
+
+
+
+
 {assignmentOperator} {printf("%s is an assignment operator\n", yytext); addToTable(0,yytext,"assignment operator");}
 {arithmeticOperator} {printf("%s is an arithmetic operator\n", yytext); addToTable(0,yytext,"arithmetic operator");}
 {specialCharacters} {printf("%s is a special character\n",yytext);}

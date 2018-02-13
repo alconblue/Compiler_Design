@@ -55,27 +55,27 @@ declarationStatementError : declaration
 ifAndElseStatement : ifAndElseMatched
 				   | ifAndElseUnmatched
 				   ;
-ifAndElseMatched : if '(' expression ')' ifAndElseMatched else ifAndElseMatched 
+ifAndElseMatched : IF '(' expression ')' ifAndElseMatched ELSE ifAndElseMatched 
 				 | statement
 				 ;
-ifAndElseUnmatched : if '(' expression ')' ifAndElseMatched else ifAndElseUnmatched
-				   | if	'(' expression ')' statement
+ifAndElseUnmatched : IF '(' expression ')' ifAndElseMatched ELSE ifAndElseUnmatched
+				   | IF	'(' expression ')' statement
 				   ;		   				 
-ifAndElseStatementError : if '(' expression ifAndElseMatched else ifAndElseMatched
-						| if expression ')' ifAndElseMatched else ifAndElseMatched
-						| if expression ')' ifAndElseMatched else ifAndElseUnmatched
-						| if '(' expression ifAndElseMatched else ifAndElseUnmatched
-						| if expression ')' statement
-						| if '(' expression statement
+ifAndElseStatementError : IF '(' expression ifAndElseMatched ELSE ifAndElseMatched
+						| IF expression ')' ifAndElseMatched ELSE ifAndElseMatched
+						| IF expression ')' ifAndElseMatched ELSE ifAndElseUnmatched
+						| IF '(' expression ifAndElseMatched ELSE ifAndElseUnmatched
+						| IF expression ')' statement
+						| IF '(' expression statement
 						;
 
 
 
 	/*While loop*/
-whileLoopStatement : while '(' expression ')' statement
+whileLoopStatement : WHILE '(' expression ')' statement
 				   ;
-whileLoopStatementError : while expression ')' statement
-						| while '(' expression statement
+whileLoopStatementError : WHILE expression ')' statement
+						| WHILE '(' expression statement
 						;
 
 

@@ -7,6 +7,8 @@
 
 %token AUTO BREAK CASE CHAR CONST CONTINUE DEFAULT DO DOUBLE ELSE ENUM EXTERN FLOAT FOR GOTO IF INT LONG %token REGISTER RETURN SHORT SIGNED SIZEOF STATIC STRUCT SWITCH TYPEDEF UNION UNSIGNED VOID VOLATILE WHILE
 
+%start startSymbol
+
 %%
 
 /*The supported datatypes*/
@@ -20,7 +22,15 @@ dataType : SHORT
 
 	/*List of all statements*/
 statement : declarationStatement
-		  | ifAndElseStatement
+		  | ifAndElseMatched
+		  | ifAndElseUnmatched
+		  | whileLoopStatement
+		  | expressionStatement
+		  | jumpStatement
+		  | compoundStatement
+		  ;
+
+statement1 : declarationStatement
 		  | whileLoopStatement
 		  | expressionStatement
 		  | jumpStatement
@@ -39,42 +49,44 @@ declarationStatement : declaration ';'
 					 | declarationAndAssignment ';'
 					 ;		 
 declaration : dataType ID ;
-declarationAndAssignment : dataType ID EQ CONSTANT 
-					     | dataType ID EQ STR 
+declarationAndAssignment : dataType ID '=' CONSTANT 
+					     | dataType ID '=' STR 
 					     ;		   
-declarationStatementError : declaration 
-					 	  | declarationAndAssignment 
-					 	  ;						     
+/*declarationStatementError : declaration { printf("Semicolon missing after statement %s\n",$1);}
+					 	  | declarationAndAssignment { printf("Semicolon missing after statement %s\n",$1);}
+					 	  ;*/
 
 
 
 	/*If and else statements.*/
 	/*The dangling else problem is taken care by having two types of if and else statements: Matched and unmatched statements*/
-ifAndElseStatement : ifAndElseMatched
+/*ifAndElseStatement : ifAndElseMatched
 				   | ifAndElseUnmatched
-				   ;
-ifAndElseMatched : IF '(' expression ')' ifAndElseMatched ELSE ifAndElseMatched 
-				 | statement
+				   ;*/
+ifAndElseMatched : IF '(' expression ')' ifAndElseMatched1 ELSE ifAndElseMatched1 
 				 ;
+ifAndElseMatched1 : IF '(' expression ')' ifAndElseMatched1 ELSE ifAndElseMatched1 
+				  | statement1
+				  ;		 
 ifAndElseUnmatched : IF '(' expression ')' ifAndElseMatched ELSE ifAndElseUnmatched
 				   | IF	'(' expression ')' statement
 				   ;		   				 
-ifAndElseStatementError : IF '(' expression ifAndElseMatched ELSE ifAndElseMatched
+/*ifAndElseStatementError : IF '(' expression ifAndElseMatched ELSE ifAndElseMatched
 						| IF expression ')' ifAndElseMatched ELSE ifAndElseMatched
 						| IF expression ')' ifAndElseMatched ELSE ifAndElseUnmatched
 						| IF '(' expression ifAndElseMatched ELSE ifAndElseUnmatched
 						| IF expression ')' statement
 						| IF '(' expression statement
-						;
+						;*/
 
 
 
 	/*While loop*/
 whileLoopStatement : WHILE '(' expression ')' statement
-				   ;
-whileLoopStatementError : WHILE expression ')' statement
+				   		;
+/*whileLoopStatementError : WHILE expression ')' statement
 						| WHILE '(' expression statement
-						;
+						;*/
 
 
 	/*Expressions are statements with operators. The expressions are defined taking care of the precedence of operators*/
@@ -192,7 +204,7 @@ assignment_operator
 	| AND_ASSIGN
 	| XOR_ASSIGN
 	| OR_ASSIGN
-;
+	;
 
 
 	/*Jump statements include continue,break and return statements*/
@@ -200,20 +212,34 @@ jumpStatement : CONTINUE ';'
 			  | BREAK ';'
 			  | RETURN ';'
 			  ;
-jumpStatementError : CONTINUE 
+/*			jumpStatementError : CONTINUE 
 			       | BREAK 
 			       | RETURN 
-			       ;			  
+			       ;*/		  
 
 
 	/*Compound statements are the statements enclosed within the curly braces*/
 compoundStatement : '{' statements '}'
 				  | '{' '}'
 				  ;
-compoundStatementError : '{'
+/*compoundStatementError : '{'
 					   | '}'
 					   | '{' statements 
 					   | statements '}'
+					   ;*/
+
+
+
+startSymbol
+	: external_declaration
+	| startSymbol external_declaration
+	;
+
+external_declaration
+	: functionDefinition
+	| declarationStatement
+	;
+
 
 
 	/*Function definition and arguments*/
@@ -233,6 +259,8 @@ functionDefinition : dataType ID "(" ")" compoundStatement
 
 %%
 
+#include<stdio.h>
+
 int main()
 {
 	yyparse();
@@ -243,7 +271,7 @@ int yywrap()
 	return 1;
 }
 
-void yyerror(char *msg)
+yyerror(char *msg)
 {
 	printf("Error: %s\n",msg);
 }

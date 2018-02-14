@@ -3,7 +3,9 @@
 	#include <stdlib.h>
 	#include <string.h>
 	#include "y.tab.h"
+	extern yylval;
 	int size=20;
+	int lineNo=1;
 	int globalIndex=0;
 	struct symbolTable{
 		int index;
@@ -113,7 +115,6 @@ nonIdentifier ({digit})+(_|{letter})(_|{letter}|{digit})*
 identifier (_|{letter})(_|{letter}|{digit})*
 dataType int|float|double|short\ int|long\ int
 argument {dataType}[\ ]*{identifier}
-function {identifier}"("(([\ ]*{argument}[\ ]*\,[\ ]*)*[\ ]*{argument}[\ ]*)?")" 
 integer ({digit})+
 float ({digit})*\.({digit})+
 assignmentOperator "="
@@ -121,7 +122,7 @@ arithmeticOperator "+"|"-"|"*"|"/"|"%"
 operator "+="|"-="|"*="|"/="|"%="|">>="|"<<="|"&="|"^="|"|="|"++"|"--"|"=="|"!="|">"|"<"|">="|"<="|"||"|"&&"|"!"|"&"|"|"|"^"|"~"|"<<"|">>"|"?" 
 headerFile "#include"[\ ]*"<"[\ ]*[^>]*[\ ]*">"
 specialCharacters \;|\{|\}|\(|\)|\[|\]|,
-whitespaces [\ ]|[\n]|[\t]
+whitespaces [\ ]|[\t]
 %%
 {multilineCommentError} {printf("ERROR: Multiline comment is not closed\n");}
 {strError} {printf("ERROR: String is not closed\n");}
@@ -132,7 +133,7 @@ whitespaces [\ ]|[\n]|[\t]
 		char *te = (char *)malloc(strlen(yytext)-1);
 		int l = strlen(yytext);
 		strncpy(te, yytext + 1, l-2);
-		printf("%s %d- String constant\n", te, l); addToTable(1,te,"String"); return STR;}
+		printf("%s- String constant\n", te); addToTable(1,te,"String"); return STR;}
 auto {printf("Keyword auto found\n"); addToTable(0,"auto","keyword"); return AUTO;}
 break {printf("Keyword break found\n"); addToTable(0,"break", "keyword"); return BREAK;}
 case {printf("Keyword case found\n"); addToTable(0,"case", "keyword"); return CASE;}
@@ -166,7 +167,6 @@ void {printf("Keyword void found\n"); addToTable(0,"void","keyword"); return VOI
 volatile {printf("Keyword volatile found\n"); addToTable(0,"volatile","keyword"); return VOLATILE;}
 while {printf("Keyword while found\n"); addToTable(0,"while","keyword"); return WHILE;}
 {keyword} {printf("%s is a Keyword\n",yytext);}
-{function} {printf("%s is a Function\n",yytext); addToTable(0,yytext,"function");}
 {identifier} {printf("%s is a Identifier\n", yytext); addToTable(0,yytext,"identifier"); return ID;}
 {integer} {printf("%s is an Integer constant\n", yytext); addToTable(1,yytext,"integer"); return CONSTANT;}
 {float} {printf("%s is a floating point constant\n", yytext); addToTable(1,yytext,"float"); return CONSTANT;}
@@ -185,25 +185,39 @@ while {printf("Keyword while found\n"); addToTable(0,"while","keyword"); return 
 "++"  {printf("%s is increment operator\n",yytext); addToTable(0,yytext,"increment operator"); return INC;}
 "--"  {printf("%s is decrement operator\n", yytext); addToTable(0,yytext,"decrement operator"); return DEC;}
 "=="  {printf("%s is equal comparator\n", yytext); addToTable(0,yytext,"equal comparison operator"); return EQ;}
-"!="  {printf("%s is not equal comparator\n", yytext); addToTable(0,yytext,"not equal operator");}
-">"   {printf("%s is less than comparator\n", yytext); addToTable(0,yytext,"less than operator");}
-"<"   {printf("%s is greater than comparator\n", yytext); addToTable(0,yytext,"greater than operator");}
+"!="  {printf("%s is not equal comparator\n", yytext); addToTable(0,yytext,"not equal operator"); return 'NE';}
+">"   {printf("%s is greater than comparator\n", yytext); addToTable(0,yytext,"greater than operator"); return '>';} 
+"<"   {printf("%s is less than comparator\n", yytext); addToTable(0,yytext,"less than operator"); return '<';}
 ">="  {printf("%s is greater than equal\n", yytext); addToTable(0,yytext,"greater or equal"); return GE;} 
 "<="  {printf("%s is less than equal\n", yytext); addToTable(0,yytext,"less or equal"); return LE;}
 "||"  {printf("%s is logical or operator\n", yytext); addToTable(0,yytext,"logical or"); return OR;}
 "&&"  {printf("%s is logical and operator\n", yytext); addToTable(0,yytext,"logical and"); return AND;} 
-"!"   {printf("%s is not operator\n", yytext); addToTable(0,yytext,"not operator");}
-"&"	  {printf("%s is and operator\n", yytext); addToTable(0,yytext,"and operator");}
-"|"   {printf("%s is or operator\n", yytext); addToTable(0,yytext,"or operator");} 
-"^"   {printf("%s is xor operator\n", yytext); addToTable(0,yytext,"xor operator");}
-"~"   {printf("%s is bitwise not\n", yytext); addToTable(0,yytext,"bit-not");}
+"!"   {printf("%s is not operator\n", yytext); addToTable(0,yytext,"not operator"); return '!';}
+"&"	  {printf("%s is and operator\n", yytext); addToTable(0,yytext,"and operator"); return '&';}
+"|"   {printf("%s is or operator\n", yytext); addToTable(0,yytext,"or operator"); return '|';} 
+"^"   {printf("%s is xor operator\n", yytext); addToTable(0,yytext,"xor operator"); return '^';}
+"~"   {printf("%s is bitwise not\n", yytext); addToTable(0,yytext,"bit-not"); return '~';}
 "<<"  {printf("%s is left shift operator\n", yytext); addToTable(0,yytext,"left shift operator"); return LEFT;}
 ">>"  {printf("%s is right shift operator\n", yytext); addToTable(0,yytext,"right shift operator"); return RIGHT;}
-"?"   {printf("%s is conditional operator\n", yytext); addToTable(0,yytext,"conditional operator");}
-{assignmentOperator} {printf("%s is an assignment operator\n", yytext); addToTable(0,yytext,"assignment operator");}
+"?"   {printf("%s is conditional operator\n", yytext); addToTable(0,yytext,"conditional operator"); return '?';}
+{assignmentOperator} {printf("%s is an assignment operator\n", yytext); addToTable(0,yytext,"assignment operator"); return '=';}
+"-"   {printf("%s is arithmetic operator\n", yytext); addToTable(0,yytext,"arithmetic operator"); return '-';}
+"+"   {printf("%s is arithmetic operator\n", yytext); addToTable(0,yytext,"arithmetic operator"); return '+';}
+"*"   {printf("%s is arithmetic operator\n", yytext); addToTable(0,yytext,"arithmetic operator"); return '*';}
+"/"   {printf("%s is arithmetic operator\n", yytext); addToTable(0,yytext,"arithmetic operator"); return '/';}
+"%"   {printf("%s is arithmetic operator\n", yytext); addToTable(0,yytext,"arithmetic operator"); return '%';}
 {arithmeticOperator} {printf("%s is an arithmetic operator\n", yytext); addToTable(0,yytext,"arithmetic operator");}
-{specialCharacters} {printf("%s is a special character\n",yytext);}
+";" {return(';');}
+"{"   {printf("%s is special character\n", yytext); addToTable(0,yytext, "special character"); return '{';}
+"}"   {printf("%s is special character\n", yytext); addToTable(0,yytext, "special character"); return '}';}
+"("   {printf("%s is special character\n", yytext); addToTable(0,yytext, "special character"); return('(');}
+")"   {printf("%s is special character\n", yytext); addToTable(0,yytext, "special character"); return(')');}
+"["   {printf("%s is special character\n", yytext); addToTable(0,yytext, "special character"); return '[';}
+"]"   {printf("%s is special character\n", yytext); addToTable(0,yytext, "special character"); return ']';}
+","   {printf("%s is special character\n", yytext); addToTable(0,yytext, "special character"); return ',';}	
+{specialCharacters} {printf("%s is a special character\n",yytext); return yytext;}
 {whitespaces} {} 
 . {printf("Error: %s is an Illegal characters\n",yytext);}
+"\n" {lineNo++;}
 %%
 

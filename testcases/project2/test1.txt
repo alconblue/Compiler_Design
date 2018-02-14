@@ -1,14 +1,9 @@
 #include <stdio.h>
 #include <stdio.h>
 
-//There are no syntax errors in this code
-//But it has an example of shift reduce conflict. 
-
-void print(int x)
+int print(int x, int y)
 {
-	int i=0,j=0;
-// The following statement can produce shift reduce conflict if no precedence of grammars is given
-	int y = 5+x*10;
+	int i=0, j=0;
 
 	while(i<x)
 	{
@@ -19,14 +14,7 @@ void print(int x)
 			{
 				printf("equal");
 			}
-			else if (i>j)
-			{
-				printf("Greater");
-			}
-			else
-			{
-				printf("Smaller");
-			}
+			
 			j++;
 		}
 		printf("\n");
@@ -34,8 +22,11 @@ void print(int x)
 	}
 }
 
+//The main function calls the function printMatrix. The lex analyser detects functions with fixed arguments
+/* It also takes care of the longest match problem occurring when using multi line comments*/
+
 int main()
 {
-	print(5);
+	print(5,10);
 	return 0;
 }

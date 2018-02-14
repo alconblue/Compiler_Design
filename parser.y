@@ -5,7 +5,9 @@
 %token SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
 %token XOR_ASSIGN OR_ASSIGN 
 
-%token AUTO BREAK CASE CHAR CONST CONTINUE DEFAULT DO DOUBLE ELSE ENUM EXTERN FLOAT FOR GOTO IF INT LONG %token REGISTER RETURN SHORT SIGNED SIZEOF STATIC STRUCT SWITCH TYPEDEF UNION UNSIGNED VOID VOLATILE WHILE
+%token AUTO BREAK CASE CHAR CONST CONTINUE DEFAULT DO DOUBLE ELSE ENUM EXTERN FLOAT FOR GOTO IF INT LONG 
+
+%token REGISTER RETURN SHORT SIGNED SIZEOF STATIC STRUCT SWITCH TYPEDEF UNION UNSIGNED VOID VOLATILE WHILE
 
 %start startSymbol
 
@@ -16,7 +18,8 @@ dataType : SHORT
 		 | INT 
 		 | LONG 
 		 | FLOAT 
-		 | DOUBLE 
+		 | DOUBLE
+		 | VOID 
 		 ;
 
 
@@ -45,13 +48,35 @@ statements : statements statement
 	/*defining each type of statements*/
 	
 	/*Declaration statements: Include declaration of identifiers, with or without initialisation*/
-declarationStatement : declaration ';'
-					 | declarationAndAssignment ';'
-					 ;		 
-declaration : dataType ID ;
-declarationAndAssignment : dataType ID '=' CONSTANT 
-					     | dataType ID '=' STR 
+declarationStatement : declarationList ';' {printf("hello%s %s\n", $1, $2);}
+					 ;	
+
+declaration : dataType ID {printf("hello%s %s\n", $1, $2);};
+declarationAndAssignment : declaration '=' CONSTANT 
+					     | declaration '=' STR 
 					     ;		   
+
+completeDeclaration : declarationAndAssignment 
+					| declaration
+					;
+
+argumentList : argumentList ',' completeDeclaration
+				| completeDeclaration
+				;
+
+declarationList : dataType identifierList
+				;				
+
+identifierList : identifierList ',' ID
+				| identifierList ',' ID '=' STR
+				| identifierList ',' ID '=' CONSTANT
+				| identifierList ',' ID '=' ID
+				| ID
+				| ID '=' STR
+				| ID '=' CONSTANT
+				| ID '=' ID
+				;
+
 /*declarationStatementError : declaration { printf("Semicolon missing after statement %s\n",$1);}
 					 	  | declarationAndAssignment { printf("Semicolon missing after statement %s\n",$1);}
 					 	  ;*/
@@ -82,7 +107,7 @@ ifAndElseUnmatched : IF '(' expression ')' ifAndElseMatched ELSE ifAndElseUnmatc
 
 
 	/*While loop*/
-whileLoopStatement : WHILE '(' expression ')' statement
+whileLoopStatement : WHILE '(' expression ')' statement {printf("%s", $1);}
 				   		;
 /*whileLoopStatementError : WHILE expression ')' statement
 						| WHILE '(' expression statement
@@ -92,7 +117,7 @@ whileLoopStatement : WHILE '(' expression ')' statement
 	/*Expressions are statements with operators. The expressions are defined taking care of the precedence of operators*/
 expressionStatement : expression ';'
 					;
-expression : assignment_expression
+expression : assignment_expression {printf("%s", $1);}
 		   | expression ',' assignment_expression
 		   ;
 primary_expression
@@ -211,6 +236,7 @@ assignment_operator
 jumpStatement : CONTINUE ';'
 			  | BREAK ';'
 			  | RETURN ';'
+			  | RETURN expression ';'
 			  ;
 /*			jumpStatementError : CONTINUE 
 			       | BREAK 
@@ -238,21 +264,13 @@ startSymbol
 external_declaration
 	: functionDefinition
 	| declarationStatement
+	| HEADERFILE
 	;
 
 
 
-	/*Function definition and arguments*/
-argument : dataType ID 
-		 | dataType ID EQ CONSTANT 
-		 | dataType ID EQ STR 
-		 ;
-argumentList : argumentList ',' argument 
-			 | argument
-			 ;
-functionDefinition : dataType ID "(" ")" compoundStatement
-				   | dataType ID "(" argument ")" compoundStatement
-				   | dataType ID "(" argumentList ")" compoundStatement
+functionDefinition : declaration '(' ')' compoundStatement {printf("work\n");}
+				   | declaration '(' argumentList ')' compoundStatement
 				   ;		
 
 
@@ -260,9 +278,10 @@ functionDefinition : dataType ID "(" ")" compoundStatement
 %%
 
 #include<stdio.h>
-
+extern int lineNo;
 int main()
 {
+	//yyin = fopen("testcases/project2/test1.txt", "r");
 	yyparse();
 }
 
@@ -271,7 +290,7 @@ int yywrap()
 	return 1;
 }
 
-yyerror(char *msg)
+void yyerror(char *msg)
 {
-	printf("Error: %s\n",msg);
+	printf("Error: %s in line %d\n",msg, lineNo);
 }

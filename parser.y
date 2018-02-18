@@ -9,17 +9,128 @@
 
 %token REGISTER RETURN SHORT SIGNED SIZEOF STATIC STRUCT SWITCH TYPEDEF UNION UNSIGNED VOID VOLATILE WHILE
 
+%union{
+	int integer;
+	float floating_point;
+	char *sym;
+}
+
 %start startSymbol
+
+%{	
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <string.h>
+	int size=20;
+	char *alc=0;
+	int globalIndex=0;
+	struct symbolTable{
+		int index;
+		char *symbol;
+		char *attribute;
+		char *data;
+		struct symbolTable *next;
+	};
+	struct symbolTable *hash[2][20];
+	int i=0;
+	void init()
+	{
+		for(;i<size;i++)
+		{
+			hash[0][i] = NULL;
+			hash[1][i] = NULL;
+		}
+	}
+	
+	int hashLocation(char *sym)
+	{
+		int sum=0;
+		size_t length = strlen(sym);
+		int k=0;
+		for(;k<length;k++)
+		{
+			sum = sum + (int)sym[k];
+		}
+		return sum%size;
+	}
+
+	int searchHash(int type, char *sym, int x)
+	{
+		struct symbolTable *temp = hash[type][x];
+		while(temp!=NULL)
+		{
+			if (strcmp(temp->symbol, sym)==0)
+			{
+				return 0;
+			}
+			temp=temp->next;
+		}
+		return 1;
+	}
+
+	void addToTable(int type, char *sym, char *attr, char *dat)
+	{
+		int x = hashLocation(sym);
+		if (searchHash(type, sym, x)==0)
+			return;	
+		struct symbolTable *newSymbol = (struct symbolTable *)malloc(sizeof(struct symbolTable));
+		char *te = (char *)malloc(strlen(sym)+1);
+		strcpy(te, sym);
+		newSymbol->symbol = te;
+		newSymbol->attribute = attr;
+		newSymbol->data = dat;
+		newSymbol->next = NULL;
+		newSymbol->index = globalIndex + 1;
+		globalIndex++;
+		struct symbolTable *temp = hash[type][x];
+		hash[type][x] = newSymbol;
+		hash[type][x]->next = temp;
+	}
+
+	void display()
+	{
+		int k=0;
+		printf("\n\nSYMBOL TABLE:\n");
+		printf("------------------------------------------------------------------------------------\n");
+		printf("%*s\t|\t%*s\t|\t%*s\t|\t%*s\n", 10, "INDEX", 10, "SYMBOL", 10, "ATTRIBUTE", 10, "DATATYPE");
+		printf("------------------------------------------------------------------------------------\n");
+		for(;k<size;k++)
+		{
+			struct symbolTable *temp = hash[0][k];
+			while(temp!=NULL)
+			{
+				printf("%*d\t|\t%*s\t|\t%*s\t|\t%*s\n",10, temp->index, 10, temp->symbol, 10, temp->attribute, 10, temp->data);
+				temp = temp->next;
+			}
+		}
+		printf("-------------------------------------------------------------------------------------\n");
+		k=0;
+		printf("\n\nCONSTANT TABLE:\n");
+		printf("-------------------------------------------------------------------\n");
+		printf("%*s\t|\t%*s\t|\t%*s\n", 10, "INDEX", 10, "SYMBOL", 10, "ATTRIBUTE");
+		printf("-------------------------------------------------------------------\n");
+		for(;k<size;k++)
+		{
+			struct symbolTable *temp = hash[1][k];
+			while(temp!=NULL)
+			{
+				printf("%*d\t|\t%*s\t|\t%*s\n",10, temp->index, 10, temp->symbol, 10, temp->attribute);
+				temp = temp->next;
+			}
+		}
+		printf("-------------------------------------------------------------------\n");
+	}
+%}
 
 %%
 
 /*The supported datatypes*/
-dataType : SHORT 
-		 | INT 
-		 | LONG 
-		 | FLOAT 
-		 | DOUBLE
-		 | VOID 
+dataType : SHORT {alc="short";}
+		 | INT {alc="int";}
+		 | LONG {alc="long";}
+		 | FLOAT {alc="float";}
+		 | DOUBLE {alc="double";}
+		 | VOID {alc="void";}
 		 ;
 
 
@@ -48,12 +159,12 @@ statements : statements statement
 	/*defining each type of statements*/
 	
 	/*Declaration statements: Include declaration of identifiers, with or without initialisation*/
-declarationStatement : declarationList ';' {printf("hello%s %s\n", $1, $2);}
+declarationStatement : declarationList ';'
 					 ;	
 
-declaration : dataType ID {printf("hello%s %s\n", $1, $2);};
-declarationAndAssignment : declaration '=' CONSTANT 
-					     | declaration '=' STR 
+declaration : dataType identi;
+declarationAndAssignment : declaration '=' consta
+					     | declaration '=' stri
 					     ;		   
 
 completeDeclaration : declarationAndAssignment 
@@ -67,14 +178,14 @@ argumentList : argumentList ',' completeDeclaration
 declarationList : dataType identifierList
 				;				
 
-identifierList : identifierList ',' ID
-				| identifierList ',' ID '=' STR
-				| identifierList ',' ID '=' CONSTANT
-				| identifierList ',' ID '=' ID
-				| ID
-				| ID '=' STR
-				| ID '=' CONSTANT
-				| ID '=' ID
+identifierList : identifierList ',' identi
+				| identifierList ',' identi '=' stri
+				| identifierList ',' identi '=' consta
+				| identifierList ',' identi '=' identi 
+				| identi 
+				| identi '=' stri
+				| identi '=' consta
+				| identi '=' identi
 				;
 
 /*declarationStatementError : declaration { printf("Semicolon missing after statement %s\n",$1);}
@@ -93,11 +204,11 @@ ifAndElseMatched : IF '(' expression ')' ifAndElseMatched1 ELSE ifAndElseMatched
 ifAndElseMatched1 : IF '(' expression ')' ifAndElseMatched1 ELSE ifAndElseMatched1 
 				  | statement1
 				  ;		 
-ifAndElseUnmatched : IF '(' expression ')' ifAndElseMatched ELSE ifAndElseUnmatched
-				   | IF	'(' expression ')' statement
+ifAndElseUnmatched : IF '(' expression ')' ifAndElseMatched1 ELSE ifAndElseUnmatched
+				   | IF	'(' expression ')' statement1
 				   ;		   				 
-/*ifAndElseStatementError : IF '(' expression ifAndElseMatched ELSE ifAndElseMatched
-						| IF expression ')' ifAndElseMatched ELSE ifAndElseMatched
+/*ifAndElseStatementError : IF '(' expression ifAndElseMatched ELSE ifAndElseMatched 
+						| IF expression ')' ifAndElseMatched ELSE ifAndElseMatched 
 						| IF expression ')' ifAndElseMatched ELSE ifAndElseUnmatched
 						| IF '(' expression ifAndElseMatched ELSE ifAndElseUnmatched
 						| IF expression ')' statement
@@ -107,23 +218,23 @@ ifAndElseUnmatched : IF '(' expression ')' ifAndElseMatched ELSE ifAndElseUnmatc
 
 
 	/*While loop*/
-whileLoopStatement : WHILE '(' expression ')' statement {printf("%s", $1);}
+whileLoopStatement : WHILE '(' expression ')' statement
 				   		;
-/*whileLoopStatementError : WHILE expression ')' statement
-						| WHILE '(' expression statement
+/*whileLoopStatementError : WHILE expression ')' statement {addToTable(0,"while","keyword");}
+						| WHILE '(' expression statement {addToTable(0,"while","keyword");}
 						;*/
 
 
 	/*Expressions are statements with operators. The expressions are defined taking care of the precedence of operators*/
 expressionStatement : expression ';'
 					;
-expression : assignment_expression {printf("%s", $1);}
+expression : assignment_expression
 		   | expression ',' assignment_expression
 		   ;
 primary_expression
-	: ID
-	| CONSTANT
-	| STR
+	: identi
+	| consta
+	| stri
 	| '(' expression ')'
 	;
 postfix_expression
@@ -131,7 +242,7 @@ postfix_expression
 	| postfix_expression '[' expression ']'
 	| postfix_expression '(' ')'
 	| postfix_expression '(' argument_expression_list ')'
-	| postfix_expression '.' ID
+	| postfix_expression '.' identi
 	| postfix_expression INC
 	| postfix_expression DEC
 	;
@@ -269,20 +380,22 @@ external_declaration
 
 
 
-functionDefinition : declaration '(' ')' compoundStatement {printf("work\n");}
+functionDefinition : declaration '(' ')' compoundStatement
 				   | declaration '(' argumentList ')' compoundStatement
 				   ;		
 
-
-
+identi : ID {addToTable(0,yylval.sym,"identifier", alc);};
+consta : CONSTANT {addToTable(1,yylval.sym,"constant", "");};
+stri : STR {addToTable(1,yylval.sym,"string", "");};
 %%
 
 #include<stdio.h>
 extern int lineNo;
 int main()
 {
-	//yyin = fopen("testcases/project2/test1.txt", "r");
+	init();
 	yyparse();
+	display();
 }
 
 int yywrap()

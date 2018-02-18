@@ -360,8 +360,8 @@ static void yynoreturn yy_fatal_error (yyconst char* msg  );
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
 
-#define YY_NUM_RULES 91
-#define YY_END_OF_BUFFER 92
+#define YY_NUM_RULES 88
+#define YY_END_OF_BUFFER 89
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -371,29 +371,29 @@ struct yy_trans_info
 	};
 static yyconst flex_int16_t yy_accept[223] =
     {   0,
-        0,    0,   92,   89,   88,   90,   64,    2,   89,   77,
-       65,   82,   83,   75,   74,   86,   73,   89,   76,   41,
-       79,   59,   72,   58,   71,   40,   84,   85,   67,   40,
-       40,   40,   40,   40,   40,   40,   40,   40,   40,   40,
-       40,   40,   40,   40,   80,   66,   81,   68,   57,    2,
-        6,    0,   48,   63,   51,   46,   54,   44,   55,   45,
-       42,    1,    3,   47,    0,   41,   43,   69,   61,   56,
-       60,   70,   40,   52,   40,   40,   40,   40,   40,   40,
-       14,   40,   40,   40,   40,   40,   40,   22,   40,   40,
-       40,   40,   40,   40,   40,   40,   40,   40,   40,   53,
+        0,    0,   89,   86,   85,   87,   63,    2,   86,   76,
+       64,   80,   81,   74,   73,   84,   72,   86,   75,   40,
+       77,   58,   71,   57,   70,   39,   82,   83,   66,   39,
+       39,   39,   39,   39,   39,   39,   39,   39,   39,   39,
+       39,   39,   39,   39,   78,   65,   79,   67,   56,    2,
+        6,    0,   47,   62,   50,   45,   53,   43,   54,   44,
+       41,    1,    3,   46,    0,   40,   42,   68,   60,   55,
+       59,   69,   39,   51,   39,   39,   39,   39,   39,   39,
+       14,   39,   39,   39,   39,   39,   39,   22,   39,   39,
+       39,   39,   39,   39,   39,   39,   39,   39,   39,   52,
 
-       62,    0,    1,    0,    3,   43,   50,   49,   40,   40,
-       40,   40,   40,   40,   40,   40,   40,   40,   40,   20,
-       40,   23,   40,   40,   40,   40,   40,   40,   40,   40,
-       40,   40,   40,   40,   40,   40,   40,    0,    4,    7,
-       40,    9,   10,   40,   40,   40,   40,   16,   17,   40,
-       40,   21,   24,   40,   40,   40,   40,   40,   40,   40,
-       40,   40,   40,   40,   36,   40,   40,    0,    8,   11,
-       40,   40,   40,   40,   19,   40,   40,   27,   40,   40,
-       40,   40,   40,   40,   34,   40,   40,   38,    0,   40,
-       40,   15,   18,   40,   26,   28,   29,   30,   31,   32,
+       61,    0,    1,    0,    3,   42,   49,   48,   39,   39,
+       39,   39,   39,   39,   39,   39,   39,   39,   39,   20,
+       39,   23,   39,   39,   39,   39,   39,   39,   39,   39,
+       39,   39,   39,   39,   39,   39,   39,    0,    4,    7,
+       39,    9,   10,   39,   39,   39,   39,   16,   17,   39,
+       39,   21,   24,   39,   39,   39,   39,   39,   39,   39,
+       39,   39,   39,   39,   36,   39,   39,    0,    8,   11,
+       39,   39,   39,   39,   19,   39,   39,   27,   39,   39,
+       39,   39,   39,   39,   34,   39,   39,   38,    0,   39,
+       39,   15,   18,   39,   26,   28,   29,   30,   31,   32,
 
-       40,   40,   40,    0,   40,   13,   40,   33,   40,   40,
+       39,   39,   39,    0,   39,   13,   39,   33,   39,   39,
         0,   12,   25,   35,   37,    0,    0,    0,    0,    5,
         0,    0
     } ;
@@ -596,105 +596,8 @@ char *yytext;
 	#include <stdlib.h>
 	#include <string.h>
 	#include "y.tab.h"
-	extern yylval;
-	int size=20;
 	int lineNo=1;
-	int globalIndex=0;
-	struct symbolTable{
-		int index;
-		char *symbol;
-		char *attribute;
-		struct symbolTable *next;
-	};
-	struct symbolTable *hash[2][20];
-	int i=0;
-	void init()
-	{
-		for(;i<size;i++)
-		{
-			hash[0][i] = NULL;
-			hash[1][i] = NULL;
-		}
-	}
-	
-	int hashLocation(char *sym)
-	{
-		int sum=0;
-		size_t length = strlen(sym);
-		int k=0;
-		for(;k<length;k++)
-		{
-			sum = sum + (int)sym[k];
-		}
-		return sum%size;
-	}
-
-	int searchHash(int type, char *sym, int x)
-	{
-		struct symbolTable *temp = hash[type][x];
-		while(temp!=NULL)
-		{
-			if (strcmp(temp->symbol, sym)==0)
-			{
-				return 0;
-			}
-			temp=temp->next;
-		}
-		return 1;
-	}
-
-	void addToTable(int type, char *sym, char *attr)
-	{
-		int x = hashLocation(sym);
-		if (searchHash(type, sym, x)==0)
-			return;	
-		struct symbolTable *newSymbol = (struct symbolTable *)malloc(sizeof(struct symbolTable));
-		char *te = (char *)malloc(strlen(sym)+1);
-		strcpy(te, sym);
-		newSymbol->symbol = te;
-		newSymbol->attribute = attr;
-		newSymbol->next = NULL;
-		newSymbol->index = globalIndex + 1;
-		globalIndex++;
-		struct symbolTable *temp = hash[type][x];
-		hash[type][x] = newSymbol;
-		hash[type][x]->next = temp;
-	}
-
-	void display()
-	{
-		int k=0;
-		printf("\n\nSYMBOL TABLE:\n");
-		printf("-------------------------------------------------------------------\n");
-		printf("%*s\t|\t%*s\t|\t%*s\n", 10, "INDEX", 10, "SYMBOL", 10, "ATTRIBUTE");
-		printf("-------------------------------------------------------------------\n");
-		for(;k<size;k++)
-		{
-			struct symbolTable *temp = hash[0][k];
-			while(temp!=NULL)
-			{
-				printf("%*d\t|\t%*s\t|\t%*s\n",10, temp->index, 10, temp->symbol, 10, temp->attribute);
-				temp = temp->next;
-			}
-		}
-		printf("-------------------------------------------------------------------\n");
-		k=0;
-		printf("\n\nCONSTANT TABLE:\n");
-		printf("-------------------------------------------------------------------\n");
-		printf("%*s\t|\t%*s\t|\t%*s\n", 10, "INDEX", 10, "SYMBOL", 10, "ATTRIBUTE");
-		printf("-------------------------------------------------------------------\n");
-		for(;k<size;k++)
-		{
-			struct symbolTable *temp = hash[1][k];
-			while(temp!=NULL)
-			{
-				printf("%*d\t|\t%*s\t|\t%*s\n",10, temp->index, 10, temp->symbol, 10, temp->attribute);
-				temp = temp->next;
-			}
-		}
-		printf("-------------------------------------------------------------------\n");
-	}
-#line 698 "lex.yy.c"
+#line 601 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -912,9 +815,9 @@ YY_DECL
 		}
 
 	{
-#line 126 "la.l"
+#line 29 "la.l"
 
-#line 918 "lex.yy.c"
+#line 821 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -974,469 +877,454 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 127 "la.l"
+#line 30 "la.l"
 {printf("ERROR: Multiline comment is not closed\n");}
 	YY_BREAK
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 128 "la.l"
+#line 31 "la.l"
 {printf("ERROR: String is not closed\n");}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 129 "la.l"
+#line 32 "la.l"
 {}
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 130 "la.l"
+#line 33 "la.l"
 {}
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 131 "la.l"
+#line 34 "la.l"
 {printf("Header file found\n"); return HEADERFILE;}
 	YY_BREAK
 case 6:
 /* rule 6 can match eol */
 YY_RULE_SETUP
-#line 132 "la.l"
+#line 35 "la.l"
 {
 		char *te = (char *)malloc(strlen(yytext)-1);
 		int l = strlen(yytext);
 		strncpy(te, yytext + 1, l-2);
-		printf("%s- String constant\n", te); addToTable(1,te,"String"); return STR;}
+		printf("%s- String constant\n", te);  yylval.sym=te; return STR;}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 137 "la.l"
-{printf("Keyword auto found\n"); addToTable(0,"auto","keyword"); return AUTO;}
+#line 40 "la.l"
+{printf("Keyword auto found\n");  yylval.sym="auto"; return AUTO;}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 138 "la.l"
-{printf("Keyword break found\n"); addToTable(0,"break", "keyword"); return BREAK;}
+#line 41 "la.l"
+{printf("Keyword break found\n");  yylval.sym="break"; return BREAK;}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 139 "la.l"
-{printf("Keyword case found\n"); addToTable(0,"case", "keyword"); return CASE;}
+#line 42 "la.l"
+{printf("Keyword case found\n");  yylval.sym="case"; return CASE;}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 140 "la.l"
-{printf("Keyword char found\n"); addToTable(0,"char", "keyword"); return CHAR;}
+#line 43 "la.l"
+{printf("Keyword char found\n");  yylval.sym="keyword"; return CHAR;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 141 "la.l"
-{printf("Keyword const found\n"); addToTable(0,"const", "keyword"); return CONST;}
+#line 44 "la.l"
+{printf("Keyword const found\n");  yylval.sym="const"; return CONST;}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 142 "la.l"
-{printf("Keyword continue found\n"); addToTable(0,"continue", "keyword"); return CONTINUE;}
+#line 45 "la.l"
+{printf("Keyword continue found\n");  yylval.sym="continue"; yylval.sym=""; return CONTINUE;}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 143 "la.l"
-{printf("Keyword default found\n"); addToTable(0,"default", "keyword");}
+#line 46 "la.l"
+{printf("Keyword default found\n");  yylval.sym="default"; return DEFAULT;}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 144 "la.l"
-{printf("Keyword do found\n"); addToTable(0,"do","keyword"); return DO;}
+#line 47 "la.l"
+{printf("Keyword do found\n");  yylval.sym="do"; return DO;}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 145 "la.l"
-{printf("Keyword double found\n"); addToTable(0,"double","keyword"); return DOUBLE;}
+#line 48 "la.l"
+{printf("Keyword double found\n");  yylval.sym="double"; return DOUBLE;}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 146 "la.l"
-{printf("Keyword else found\n"); addToTable(0,"else","keyword"); return ELSE;}
+#line 49 "la.l"
+{printf("Keyword else found\n");  yylval.sym="else"; return ELSE;}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 147 "la.l"
-{printf("Keyword enum found\n"); addToTable(0,"enum","keyword"); return ENUM;}
+#line 50 "la.l"
+{printf("Keyword enum found\n");  yylval.sym="enum"; return ENUM;}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 148 "la.l"
-{printf("Keyword extern found\n"); addToTable(0,"extern","keyword"); return EXTERN;}
+#line 51 "la.l"
+{printf("Keyword extern found\n");  yylval.sym="extern"; return EXTERN;}
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 149 "la.l"
-{printf("Keyword float found\n"); addToTable(0,"float","keyword"); return FLOAT;}
+#line 52 "la.l"
+{printf("Keyword float found\n");  yylval.sym="float"; return FLOAT;}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 150 "la.l"
-{printf("Keyword for found\n"); addToTable(0,"for","keyword"); return FOR;}
+#line 53 "la.l"
+{printf("Keyword for found\n");  yylval.sym="for"; return FOR;}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 151 "la.l"
-{printf("Keyword goto found\n"); addToTable(0,"goto","keyword"); return GOTO;}
+#line 54 "la.l"
+{printf("Keyword goto found\n");  yylval.sym="goto"; return GOTO;}
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 152 "la.l"
-{printf("Keyword if found\n"); addToTable(0,"if","keyword"); return IF;}
+#line 55 "la.l"
+{printf("Keyword if found\n");  yylval.sym="if"; return IF;}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 153 "la.l"
-{printf("Keyword int found\n"); addToTable(0,"int","keyword"); return INT;}
+#line 56 "la.l"
+{printf("Keyword int found\n"); yylval.sym="int"; return INT;}
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 154 "la.l"
-{printf("Keyword long found\n"); addToTable(0,"long","keyword"); return LONG;}
+#line 57 "la.l"
+{printf("Keyword long found\n");  yylval.sym="long"; return LONG;}
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 155 "la.l"
-{printf("Keyword register found\n"); addToTable(0,"register","keyword"); return REGISTER;}
+#line 58 "la.l"
+{printf("Keyword register found\n");  yylval.sym="register"; return REGISTER;}
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 156 "la.l"
-{printf("Keyword return found\n"); addToTable(0,"return","keyword"); return RETURN;}
+#line 59 "la.l"
+{printf("Keyword return found\n");  yylval.sym="return"; return RETURN;}
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 157 "la.l"
-{printf("Keyword short found\n"); addToTable(0,"short","keyword"); return SHORT;}
+#line 60 "la.l"
+{printf("Keyword short found\n");  yylval.sym="short"; return SHORT;}
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 158 "la.l"
-{printf("Keyword signed found\n"); addToTable(0,"signed","keyword"); return SIGNED;}
+#line 61 "la.l"
+{printf("Keyword signed found\n");  yylval.sym="signed"; return SIGNED;}
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 159 "la.l"
-{printf("Keyword sizeof found\n"); addToTable(0,"sizeof","keyword"); return SIZEOF;}
+#line 62 "la.l"
+{printf("Keyword sizeof found\n");  yylval.sym="sizeof"; return SIZEOF;}
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 160 "la.l"
-{printf("Keyword static found\n"); addToTable(0,"static","keyword"); return STATIC;}
+#line 63 "la.l"
+{printf("Keyword static found\n");  yylval.sym="static"; return STATIC;}
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 161 "la.l"
-{printf("Keyword struct found\n"); addToTable(0,"struct","keyword"); return STRUCT;}
+#line 64 "la.l"
+{printf("Keyword struct found\n");  yylval.sym="struct"; return STRUCT;}
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 162 "la.l"
-{printf("Keyword switch found\n"); addToTable(0,"switch","keyword"); return SWITCH;}
+#line 65 "la.l"
+{printf("Keyword switch found\n");  yylval.sym="switch"; return SWITCH;}
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 163 "la.l"
-{printf("Keyword typedef found\n"); addToTable(0,"typedef","keyword"); return TYPEDEF;}
+#line 66 "la.l"
+{printf("Keyword typedef found\n");  yylval.sym="typedef"; return TYPEDEF;}
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 164 "la.l"
-{printf("Keyword union found\n"); addToTable(0,"union","keyword"); return UNION;}
+#line 67 "la.l"
+{printf("Keyword union found\n");  yylval.sym="union"; return UNION;}
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 165 "la.l"
-{printf("Keyword unsigned found\n"); addToTable(0,"unsigned","keyword"); return UNSIGNED;}
+#line 68 "la.l"
+{printf("Keyword unsigned found\n");  yylval.sym="unsigned"; return UNSIGNED;}
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 166 "la.l"
-{printf("Keyword void found\n"); addToTable(0,"void","keyword"); return VOID;}
+#line 69 "la.l"
+{printf("Keyword void found\n");  yylval.sym="void"; return VOID;}
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 167 "la.l"
-{printf("Keyword volatile found\n"); addToTable(0,"volatile","keyword"); return VOLATILE;}
+#line 70 "la.l"
+{printf("Keyword volatile found\n");  yylval.sym=yytext; return VOLATILE;}
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 168 "la.l"
-{printf("Keyword while found\n"); addToTable(0,"while","keyword"); return WHILE;}
+#line 71 "la.l"
+{printf("Keyword while found\n");  yylval.sym="while"; return WHILE;}
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 169 "la.l"
-{printf("%s is a Keyword\n",yytext);}
+#line 72 "la.l"
+{printf("%s is a Identifier\n", yytext);  yylval.sym=yytext; return ID;}
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 170 "la.l"
-{printf("%s is a Identifier\n", yytext); addToTable(0,yytext,"identifier"); return ID;}
+#line 73 "la.l"
+{printf("%s is an Integer constant\n", yytext);  yylval.sym=yytext; return CONSTANT;}
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 171 "la.l"
-{printf("%s is an Integer constant\n", yytext); addToTable(1,yytext,"integer"); return CONSTANT;}
+#line 74 "la.l"
+{printf("%s is a floating point constant\n", yytext);  yylval.sym=yytext; return CONSTANT;}
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 172 "la.l"
-{printf("%s is a floating point constant\n", yytext); addToTable(1,yytext,"float"); return CONSTANT;}
+#line 75 "la.l"
+{printf("ERROR: %s is an ill formed token\n", yytext);}
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 173 "la.l"
-{printf("ERROR: %s is an ill formed token\n", yytext);}
+#line 77 "la.l"
+{printf("%s is addition assignment operator\n", yytext);  return ADD_ASSIGN;}
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 175 "la.l"
-{printf("%s is addition assignment operator\n", yytext); addToTable(0,yytext,"addition assignment operator"); return ADD_ASSIGN;}
+#line 78 "la.l"
+{printf("%s is subtraction assignment operator\n", yytext);  return SUB_ASSIGN;}
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 176 "la.l"
-{printf("%s is subtraction assignment operator\n", yytext); addToTable(0,yytext,"sub assignment operator"); return SUB_ASSIGN;}
+#line 79 "la.l"
+{printf("%s is multiplication assignment operator\n", yytext);  return MUL_ASSIGN;}
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 177 "la.l"
-{printf("%s is multiplication assignment operator\n", yytext); addToTable(0,yytext,"mul assignment operator"); return MUL_ASSIGN;}
+#line 80 "la.l"
+{printf("%s is division assignment operator\n", yytext);  return DIV_ASSIGN;}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 178 "la.l"
-{printf("%s is division assignment operator\n", yytext); addToTable(0,yytext,"div assignment operator"); return DIV_ASSIGN;}
+#line 81 "la.l"
+{printf("%s is mod assignment operator\n", yytext);  return MOD_ASSIGN;}
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 179 "la.l"
-{printf("%s is mod assignment operator\n", yytext); addToTable(0,yytext,"mod assignment operator"); return MOD_ASSIGN;}
+#line 82 "la.l"
+{printf("%s is left shift assignment operator\n", yytext);  return LEFT_ASSIGN;} 
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 180 "la.l"
-{printf("%s is left shift assignment operator\n", yytext); addToTable(0,yytext,"left-shift assignment operator"); return LEFT_ASSIGN;} 
+#line 83 "la.l"
+{printf("%s is right shift assignment operator\n", yytext);  return RIGHT_ASSIGN;}
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 181 "la.l"
-{printf("%s is right shift assignment operator\n", yytext); addToTable(0,yytext,"right-shift assignment operator"); return RIGHT_ASSIGN;}
+#line 84 "la.l"
+{printf("%s is bitwise And assignment operator\n", yytext);  return AND_ASSIGN;}
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 182 "la.l"
-{printf("%s is bitwise And assignment operator\n", yytext); addToTable(0,yytext,"bit-and-assignment operator"); return AND_ASSIGN;}
+#line 85 "la.l"
+{printf("%s is bitwise Xor assignment operator\n", yytext);  return XOR_ASSIGN;}
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 183 "la.l"
-{printf("%s is bitwise Xor assignment operator\n", yytext); addToTable(0,yytext,"bit-xor-assignment operator"); return XOR_ASSIGN;}
+#line 86 "la.l"
+{printf("%s is bitwise Or assignment operator\n", yytext);  return OR_ASSIGN;}
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 184 "la.l"
-{printf("%s is bitwise Or assignment operator\n", yytext); addToTable(0,yytext,"bit-or-assignment operator"); return OR_ASSIGN;}
+#line 87 "la.l"
+{printf("%s is increment operator\n",yytext);  return INC;}
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 185 "la.l"
-{printf("%s is increment operator\n",yytext); addToTable(0,yytext,"increment operator"); return INC;}
+#line 88 "la.l"
+{printf("%s is decrement operator\n", yytext);  return DEC;}
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 186 "la.l"
-{printf("%s is decrement operator\n", yytext); addToTable(0,yytext,"decrement operator"); return DEC;}
+#line 89 "la.l"
+{printf("%s is equal comparator\n", yytext);  return EQ;}
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 187 "la.l"
-{printf("%s is equal comparator\n", yytext); addToTable(0,yytext,"equal comparison operator"); return EQ;}
+#line 90 "la.l"
+{printf("%s is not equal comparator\n", yytext);  return 'NE';}
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 188 "la.l"
-{printf("%s is not equal comparator\n", yytext); addToTable(0,yytext,"not equal operator"); return 'NE';}
+#line 91 "la.l"
+{printf("%s is greater than comparator\n", yytext);  return '>';} 
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 189 "la.l"
-{printf("%s is greater than comparator\n", yytext); addToTable(0,yytext,"greater than operator"); return '>';} 
+#line 92 "la.l"
+{printf("%s is less than comparator\n", yytext);  return '<';}
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 190 "la.l"
-{printf("%s is less than comparator\n", yytext); addToTable(0,yytext,"less than operator"); return '<';}
+#line 93 "la.l"
+{printf("%s is greater than equal\n", yytext);  return GE;} 
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 191 "la.l"
-{printf("%s is greater than equal\n", yytext); addToTable(0,yytext,"greater or equal"); return GE;} 
+#line 94 "la.l"
+{printf("%s is less than equal\n", yytext);  return LE;}
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 192 "la.l"
-{printf("%s is less than equal\n", yytext); addToTable(0,yytext,"less or equal"); return LE;}
+#line 95 "la.l"
+{printf("%s is logical or operator\n", yytext);  return OR;}
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 193 "la.l"
-{printf("%s is logical or operator\n", yytext); addToTable(0,yytext,"logical or"); return OR;}
+#line 96 "la.l"
+{printf("%s is logical and operator\n", yytext);  return AND;} 
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 194 "la.l"
-{printf("%s is logical and operator\n", yytext); addToTable(0,yytext,"logical and"); return AND;} 
+#line 97 "la.l"
+{printf("%s is not operator\n", yytext);  return '!';}
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 195 "la.l"
-{printf("%s is not operator\n", yytext); addToTable(0,yytext,"not operator"); return '!';}
+#line 98 "la.l"
+{printf("%s is and operator\n", yytext);  return '&';}
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 196 "la.l"
-{printf("%s is and operator\n", yytext); addToTable(0,yytext,"and operator"); return '&';}
+#line 99 "la.l"
+{printf("%s is or operator\n", yytext);  return '|';} 
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 197 "la.l"
-{printf("%s is or operator\n", yytext); addToTable(0,yytext,"or operator"); return '|';} 
+#line 100 "la.l"
+{printf("%s is xor operator\n", yytext);  return '^';}
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 198 "la.l"
-{printf("%s is xor operator\n", yytext); addToTable(0,yytext,"xor operator"); return '^';}
+#line 101 "la.l"
+{printf("%s is bitwise not\n", yytext);  return '~';}
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 199 "la.l"
-{printf("%s is bitwise not\n", yytext); addToTable(0,yytext,"bit-not"); return '~';}
+#line 102 "la.l"
+{printf("%s is left shift operator\n", yytext);  return LEFT;}
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 200 "la.l"
-{printf("%s is left shift operator\n", yytext); addToTable(0,yytext,"left shift operator"); return LEFT;}
+#line 103 "la.l"
+{printf("%s is right shift operator\n", yytext);  return RIGHT;}
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 201 "la.l"
-{printf("%s is right shift operator\n", yytext); addToTable(0,yytext,"right shift operator"); return RIGHT;}
+#line 104 "la.l"
+{printf("%s is conditional operator\n", yytext);  return '?';}
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 202 "la.l"
-{printf("%s is conditional operator\n", yytext); addToTable(0,yytext,"conditional operator"); return '?';}
+#line 105 "la.l"
+{printf("%s is an assignment operator\n", yytext);  return '=';}
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 203 "la.l"
-{printf("%s is an assignment operator\n", yytext); addToTable(0,yytext,"assignment operator"); return '=';}
+#line 106 "la.l"
+{printf("%s is arithmetic operator\n", yytext);  return '-';}
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 204 "la.l"
-{printf("%s is arithmetic operator\n", yytext); addToTable(0,yytext,"arithmetic operator"); return '-';}
+#line 107 "la.l"
+{printf("%s is arithmetic operator\n", yytext);  return '+';}
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 205 "la.l"
-{printf("%s is arithmetic operator\n", yytext); addToTable(0,yytext,"arithmetic operator"); return '+';}
+#line 108 "la.l"
+{printf("%s is arithmetic operator\n", yytext);  return '*';}
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 206 "la.l"
-{printf("%s is arithmetic operator\n", yytext); addToTable(0,yytext,"arithmetic operator"); return '*';}
+#line 109 "la.l"
+{printf("%s is arithmetic operator\n", yytext);  return '/';}
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 207 "la.l"
-{printf("%s is arithmetic operator\n", yytext); addToTable(0,yytext,"arithmetic operator"); return '/';}
+#line 110 "la.l"
+{printf("%s is arithmetic operator\n", yytext);  return '%';}
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 208 "la.l"
-{printf("%s is arithmetic operator\n", yytext); addToTable(0,yytext,"arithmetic operator"); return '%';}
+#line 111 "la.l"
+{printf("%s is special character\n",yytext); return(';');}
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 209 "la.l"
-{printf("%s is an arithmetic operator\n", yytext); addToTable(0,yytext,"arithmetic operator");}
+#line 112 "la.l"
+{printf("%s is special character\n", yytext);  return '{';}
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 210 "la.l"
-{return(';');}
+#line 113 "la.l"
+{printf("%s is special character\n", yytext);  return '}';}
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 211 "la.l"
-{printf("%s is special character\n", yytext); addToTable(0,yytext, "special character"); return '{';}
+#line 114 "la.l"
+{printf("%s is special character\n", yytext); return '(';}
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 212 "la.l"
-{printf("%s is special character\n", yytext); addToTable(0,yytext, "special character"); return '}';}
+#line 115 "la.l"
+{printf("%s is special character\n", yytext); return ')';}
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 213 "la.l"
-{printf("%s is special character\n", yytext); addToTable(0,yytext, "special character"); return('(');}
+#line 116 "la.l"
+{printf("%s is special character\n", yytext);  return '[';}
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 214 "la.l"
-{printf("%s is special character\n", yytext); addToTable(0,yytext, "special character"); return(')');}
+#line 117 "la.l"
+{printf("%s is special character\n", yytext);  return ']';}
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 215 "la.l"
-{printf("%s is special character\n", yytext); addToTable(0,yytext, "special character"); return '[';}
+#line 118 "la.l"
+{printf("%s is special character\n", yytext);  return ',';}	
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 216 "la.l"
-{printf("%s is special character\n", yytext); addToTable(0,yytext, "special character"); return ']';}
+#line 119 "la.l"
+{} 
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 217 "la.l"
-{printf("%s is special character\n", yytext); addToTable(0,yytext, "special character"); return ',';}	
+#line 120 "la.l"
+{printf("Error: %s is an Illegal characters\n",yytext);}
 	YY_BREAK
 case 87:
+/* rule 87 can match eol */
 YY_RULE_SETUP
-#line 218 "la.l"
-{printf("%s is a special character\n",yytext); return yytext;}
+#line 121 "la.l"
+{lineNo++;}
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 219 "la.l"
-{} 
-	YY_BREAK
-case 89:
-YY_RULE_SETUP
-#line 220 "la.l"
-{printf("Error: %s is an Illegal characters\n",yytext);}
-	YY_BREAK
-case 90:
-/* rule 90 can match eol */
-YY_RULE_SETUP
-#line 221 "la.l"
-{lineNo++;}
-	YY_BREAK
-case 91:
-YY_RULE_SETUP
-#line 222 "la.l"
+#line 122 "la.l"
 ECHO;
 	YY_BREAK
-#line 1440 "lex.yy.c"
+#line 1328 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2437,7 +2325,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 222 "la.l"
+#line 122 "la.l"
 
 
 

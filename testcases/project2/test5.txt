@@ -5,7 +5,7 @@
 int main()
 {
 	int i = 0;
-	if(i==1)
+	int i_kj;
 	if(i==2)
 		printf("2");
 	else

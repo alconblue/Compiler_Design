@@ -1,9 +1,9 @@
 #include <stdio.h>
-#include <stdio.h>
+#include <string.h>
 
 int print(int x, int y)
 {
-	int i=0, j=0;
+	float i=0, j=0;
 
 	while(i<x)
 	{
@@ -12,12 +12,12 @@ int print(int x, int y)
 		{
 			if(i==j)
 			{
-				printf("equal");
+				print("equal");
 			}
 			
 			j++;
 		}
-		printf("\n");
+		print("\n");
 		i++;
 	}
 }
@@ -25,7 +25,7 @@ int print(int x, int y)
 //The main function calls the function printMatrix. The lex analyser detects functions with fixed arguments
 /* It also takes care of the longest match problem occurring when using multi line comments*/
 
-int main()
+void main()
 {
 	print(5,10);
 	return 0;

@@ -13,6 +13,7 @@
 	int integer;
 	float floating_point;
 	char *sym;
+
 }
 
 %start startSymbol
@@ -21,20 +22,65 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <string.h>
+	#include <limits.h>
+
 	int size=20;
 	char *alc=0;
 	int globalIndex=0;
+	int globalScope=0;
+	
+	struct Stack
+	{
+    	int top;
+    	unsigned capacity;
+    	int* array;
+	};
+
+	struct Stack* createStack(unsigned capacity)
+	{
+	    struct Stack* stack = (struct Stack*) malloc(sizeof(struct Stack));
+	    stack->capacity = capacity;
+	    stack->top = -1;
+	    stack->array = (int*) malloc(stack->capacity * sizeof(int));
+	    return stack;
+	}
+
+	int isFull(struct Stack* stack)
+	{   return stack->top == stack->capacity - 1; }
+	 
+	int isEmpty(struct Stack* stack)
+	{   return stack->top == -1;  }
+	 
+	void push(struct Stack* stack, int item)
+	{
+	    if (isFull(stack))
+	        return;
+	    stack->array[++stack->top] = item;
+	}
+	 
+	int pop(struct Stack* stack)
+	{
+	    if (isEmpty(stack))
+	        return INT_MIN;
+	    return stack->array[stack->top--];
+	}
+
 	struct symbolTable{
 		int index;
 		char *symbol;
 		char *attribute;
 		char *data;
 		struct symbolTable *next;
+		int scope;
 	};
+	
 	struct symbolTable *hash[2][20];
+	struct Stack* stack;
 	int i=0;
+	
 	void init()
 	{
+	 	stack = createStack(100);
 		for(;i<size;i++)
 		{
 			hash[0][i] = NULL;
@@ -76,15 +122,38 @@
 		struct symbolTable *newSymbol = (struct symbolTable *)malloc(sizeof(struct symbolTable));
 		char *te = (char *)malloc(strlen(sym)+1);
 		strcpy(te, sym);
+		printf("\nArgument passed: %s\n", sym);
 		newSymbol->symbol = te;
 		newSymbol->attribute = attr;
 		newSymbol->data = dat;
 		newSymbol->next = NULL;
 		newSymbol->index = globalIndex + 1;
+		newSymbol->scope = globalScope - 1;
 		globalIndex++;
 		struct symbolTable *temp = hash[type][x];
 		hash[type][x] = newSymbol;
 		hash[type][x]->next = temp;
+	}
+
+	int searchHashScope(char *sym, int x)
+	{
+		struct symbolTable *temp = hash[0][x];
+		while(temp!=NULL)
+		{
+			if (strcmp(temp->symbol, sym)==0 && globalScope -1 == temp->scope)
+			{ return 0; }
+			temp=temp->next;
+		}
+		return 1;
+	}
+
+	int checkDeclaration(char *sym)
+	{
+		int x = hashLocation(sym);
+		if(searchHashScope(sym, x))
+		return 1;
+		else
+		return 0;
 	}
 
 	void display()
@@ -163,6 +232,7 @@ declarationStatement : declarationList ';'
 					 ;	
 
 declaration : dataType identi;
+
 declarationAndAssignment : declaration '=' consta
 					     | declaration '=' stri
 					     ;		   
@@ -178,14 +248,14 @@ argumentList : argumentList ',' completeDeclaration
 declarationList : dataType identifierList
 				;				
 
-identifierList : identifierList ',' identi
-				| identifierList ',' identi '=' stri
-				| identifierList ',' identi '=' consta
-				| identifierList ',' identi '=' identi 
-				| identi 
-				| identi '=' stri
-				| identi '=' consta
-				| identi '=' identi
+identifierList : identifierList ',' identi1 
+				| identifierList ',' identi1 '=' stri
+				| identifierList ',' identi1 '=' consta
+				| identifierList ',' identi1 '=' identi 
+				| identi1 
+				| identi1 '=' stri
+				| identi1 '=' consta
+				| identi1 '=' identi1
 				;
 
 /*declarationStatementError : declaration { printf("Semicolon missing after statement %s\n",$1);}
@@ -356,9 +426,14 @@ jumpStatement : CONTINUE ';'
 
 
 	/*Compound statements are the statements enclosed within the curly braces*/
-compoundStatement : '{' statements '}'
-				  | '{' '}'
+compoundStatement : startCompound statements endCompound
+				  | startCompound endCompound 
 				  ;
+
+startCompound : '{' {push(stack,globalScope++);};
+endCompound : '}' {pop(stack);}
+			;
+
 /*compoundStatementError : '{'
 					   | '}'
 					   | '{' statements 
@@ -384,7 +459,19 @@ functionDefinition : declaration '(' ')' compoundStatement
 				   | declaration '(' argumentList ')' compoundStatement
 				   ;		
 
-identi : ID {addToTable(0,yylval.sym,"identifier", alc);};
+identi : ID {
+			printf("\nArgument Passed : %s\n", yylval.sym);
+			addToTable(0,yylval.sym,"identifier", alc);};						
+
+identi1 : ID {if(checkDeclaration(yylval.sym))
+							{
+								printf("correct\n");
+								addToTable(0,yylval.sym,"identifier", alc);
+							}
+							else
+							printf("wrong\n");
+							};
+
 consta : CONSTANT {addToTable(1,yylval.sym,"constant", "");};
 stri : STR {addToTable(1,yylval.sym,"string", "");};
 %%

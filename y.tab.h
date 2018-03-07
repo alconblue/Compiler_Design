@@ -172,7 +172,8 @@ union YYSTYPE
 	float floating_point;
 	char *sym;
 
-#line 176 "y.tab.h" /* yacc.c:1909  */
+
+#line 177 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

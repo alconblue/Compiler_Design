@@ -27,7 +27,9 @@
 	int size=20;
 	char *alc=0;
 	int globalIndex=0;
-	int globalScope=0;
+	int globalScope=1;
+	#define ANSI_COLOR_RED     "\x1b[31m"
+	#define ANSI_COLOR_RESET   "\x1b[0m"
 	
 	struct Stack
 	{
@@ -147,7 +149,8 @@
 		return 1;
 	}
 
-	int checkDeclaration(char *sym)
+	// This returns 0 if an identifier is already declared in the same scope
+	int checkDeclaration(char *sym) 
 	{
 		int x = hashLocation(sym);
 		if(searchHashScope(sym, x))
@@ -160,19 +163,19 @@
 	{
 		int k=0;
 		printf("\n\nSYMBOL TABLE:\n");
-		printf("------------------------------------------------------------------------------------\n");
-		printf("%*s\t|\t%*s\t|\t%*s\t|\t%*s\n", 10, "INDEX", 10, "SYMBOL", 10, "ATTRIBUTE", 10, "DATATYPE");
-		printf("------------------------------------------------------------------------------------\n");
+		printf("------------------------------------------------------------------------------------------------------------\n");
+		printf("%*s\t|\t%*s\t|\t%*s\t|\t%*s\t|\t%*s\n", 10, "INDEX", 10, "SYMBOL", 10, "ATTRIBUTE", 10, "DATATYPE", 10, "SCOPE");
+		printf("------------------------------------------------------------------------------------------------------------\n");
 		for(;k<size;k++)
 		{
 			struct symbolTable *temp = hash[0][k];
 			while(temp!=NULL)
 			{
-				printf("%*d\t|\t%*s\t|\t%*s\t|\t%*s\n",10, temp->index, 10, temp->symbol, 10, temp->attribute, 10, temp->data);
+				printf("%*d\t|\t%*s\t|\t%*s\t|\t%*s\t|\t%*d\n",10, temp->index, 10, temp->symbol, 10, temp->attribute, 10, temp->data, 10, temp->scope);
 				temp = temp->next;
 			}
 		}
-		printf("-------------------------------------------------------------------------------------\n");
+		printf("-------------------------------------------------------------------------------------------------------------\n");
 		k=0;
 		printf("\n\nCONSTANT TABLE:\n");
 		printf("-------------------------------------------------------------------\n");
@@ -211,6 +214,7 @@ statement : declarationStatement
 		  | expressionStatement
 		  | jumpStatement
 		  | compoundStatement
+		  | ';'
 		  ;
 
 statement1 : declarationStatement
@@ -229,9 +233,10 @@ statements : statements statement
 	
 	/*Declaration statements: Include declaration of identifiers, with or without initialisation*/
 declarationStatement : declarationList ';'
+					 | functionDeclaration
 					 ;	
 
-declaration : dataType identi;
+declaration : dataType identi1;
 
 declarationAndAssignment : declaration '=' consta
 					     | declaration '=' stri
@@ -251,7 +256,7 @@ declarationList : dataType identifierList
 identifierList : identifierList ',' identi1 
 				| identifierList ',' identi1 '=' stri
 				| identifierList ',' identi1 '=' consta
-				| identifierList ',' identi1 '=' identi 
+				| identifierList ',' identi1 '=' identi1 
 				| identi1 
 				| identi1 '=' stri
 				| identi1 '=' consta
@@ -430,7 +435,8 @@ compoundStatement : startCompound statements endCompound
 				  | startCompound endCompound 
 				  ;
 
-startCompound : '{' {push(stack,globalScope++);};
+startCompound : '{' {push(stack,globalScope++);}
+			  ;
 endCompound : '}' {pop(stack);}
 			;
 
@@ -455,22 +461,41 @@ external_declaration
 
 
 
-functionDefinition : declaration '(' ')' compoundStatement
-				   | declaration '(' argumentList ')' compoundStatement
+functionDefinition : declaration startParenthesis endParenthesis compoundStatement
+				   | declaration startParenthesis argumentList ')' compoundStatement
 				   ;		
 
-identi : ID {
-			printf("\nArgument Passed : %s\n", yylval.sym);
-			addToTable(0,yylval.sym,"identifier", alc);};						
+functionDeclaration : declaration startParenthesis endParenthesis ';'
+					| declaration startParenthesis argumentList endParenthesis ';'
+					;				   
+
+startParenthesis : '(' {push(stack,globalScope++);}
+				 ;
+endParenthesis : ')'{pop(stack);}
+			   ;
+
+identi : ID {if(checkDeclaration(yylval.sym)==0)
+				{
+					printf("\nArgument Passed : %s\n", yylval.sym);
+					//addToTable(0,yylval.sym,"identifier", alc);
+			}
+			else
+			{
+				printf(ANSI_COLOR_RED "\nERROR: Variable used is not declared\n" ANSI_COLOR_RESET);
+			}
+		};						
 
 identi1 : ID {if(checkDeclaration(yylval.sym))
-							{
-								printf("correct\n");
-								addToTable(0,yylval.sym,"identifier", alc);
-							}
-							else
-							printf("wrong\n");
-							};
+				{
+					printf("\nArgument Passed 2: %s\n", yylval.sym);
+					printf("correct\n");
+					addToTable(0,yylval.sym,"identifier", alc);
+				}
+				else
+				{
+					printf(ANSI_COLOR_RED "ERROR: Variable is already declared\n" ANSI_COLOR_RESET);
+				}
+			};
 
 consta : CONSTANT {addToTable(1,yylval.sym,"constant", "");};
 stri : STR {addToTable(1,yylval.sym,"string", "");};

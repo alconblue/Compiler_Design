@@ -198,7 +198,7 @@
 
 /*The supported datatypes*/
 dataType : SHORT {alc="short";}
-		 | INT {alc="int";}
+		 | INT {alc="int"; printf("\n-------------INT---------\n");}
 		 | LONG {alc="long";}
 		 | FLOAT {alc="float";}
 		 | DOUBLE {alc="double";}
@@ -236,31 +236,62 @@ declarationStatement : declarationList ';'
 					 | functionDeclaration
 					 ;	
 
-declaration : dataType identi1;
+declaration : dataType ID { int len = strlen(yylval.sym); 
+								char *buffer=(char *)malloc(len);
+								int i;
+								for (i=0;i<len-1;i++)
+								{
+									buffer[i] = yylval.sym[i];
+								}
+								if(checkDeclaration(buffer))
+									{
+										printf("\nArgument Passed 2: %s\n", yylval.sym);
+										printf("correct\n");
+										addToTable(0,buffer,"function", alc);
+									}
+									else
+									{
+										printf(ANSI_COLOR_RED "ERROR: Function is already declared\n" ANSI_COLOR_RESET);
+									}
+								};
 
-declarationAndAssignment : declaration '=' consta
-					     | declaration '=' stri
+declaration1 : dataType ID {if(checkDeclaration(yylval.sym))
+									{
+										printf("\nArgument Passed 2: %s\n", yylval.sym);
+										printf("correct\n");
+										addToTable(0,yylval.sym,"identifier", alc);
+									}
+									else
+									{
+										printf(ANSI_COLOR_RED "ERROR: Variable is already declared\n" ANSI_COLOR_RESET);
+									}
+								};								
+
+
+declarationAndAssignment : declaration1 '=' consta
+					     | declaration1 '=' stri
 					     ;		   
 
 completeDeclaration : declarationAndAssignment 
-					| declaration
+					| declaration1
 					;
 
 argumentList : argumentList ',' completeDeclaration
 				| completeDeclaration
 				;
 
-declarationList : dataType identifierList
+declarationList : dataType identi2 ',' identifierList
+				| dataType identi2
 				;				
 
 identifierList : identifierList ',' identi1 
 				| identifierList ',' identi1 '=' stri
 				| identifierList ',' identi1 '=' consta
-				| identifierList ',' identi1 '=' identi1 
+				| identifierList ',' identi1 '=' identi 
 				| identi1 
 				| identi1 '=' stri
 				| identi1 '=' consta
-				| identi1 '=' identi1
+				| identi1 '=' identi
 				;
 
 /*declarationStatementError : declaration { printf("Semicolon missing after statement %s\n",$1);}
@@ -437,7 +468,7 @@ compoundStatement : startCompound statements endCompound
 
 startCompound : '{' {push(stack,globalScope++);}
 			  ;
-endCompound : '}' {pop(stack);}
+endCompound : '}' {pop(stack); globalScope =  stack->array[stack->top];}
 			;
 
 /*compoundStatementError : '{'
@@ -459,26 +490,41 @@ external_declaration
 	| HEADERFILE
 	;
 
+functionCall : declaration '(' ')' ';'
+			| declaration '(' parameters ')' ';'
+			;
 
+parameters : parameters ',' identi1 
+				| parameters ',' identi1 '=' stri
+				| parameters ',' identi1 '=' consta
+				| parameters ',' identi1 '=' identi 
+				| parameters ',' consta
+				| parameters ',' stri
+				| identi1 
+				| identi1 '=' stri
+				| identi1 '=' consta
+				| identi1 '=' identi
+				| consta
+				| string
+				;			
 
-functionDefinition : declaration startParenthesis endParenthesis compoundStatement
-				   | declaration startParenthesis argumentList ')' compoundStatement
+functionDefinition : declaration startParenthesis ')' '{' statements endCompound
+				   | declaration startParenthesis ')' '{' endCompound
+				   | declaration startParenthesis argumentList ')' '{' statements endCompound
+				   | declaration startParenthesis argumentList ')' '{' endCompound
 				   ;		
 
-functionDeclaration : declaration startParenthesis endParenthesis ';'
-					| declaration startParenthesis argumentList endParenthesis ';'
+functionDeclaration : declaration '(' ')' ';'
+					| declaration startParenthesis argumentList ')' ';' {pop(stack); globalScope = stack->array[stack->top];}
 					;				   
 
 startParenthesis : '(' {push(stack,globalScope++);}
 				 ;
-endParenthesis : ')'{pop(stack);}
-			   ;
 
 identi : ID {if(checkDeclaration(yylval.sym)==0)
 				{
 					printf("\nArgument Passed : %s\n", yylval.sym);
-					//addToTable(0,yylval.sym,"identifier", alc);
-			}
+				}
 			else
 			{
 				printf(ANSI_COLOR_RED "\nERROR: Variable used is not declared\n" ANSI_COLOR_RESET);
@@ -490,6 +536,29 @@ identi1 : ID {if(checkDeclaration(yylval.sym))
 					printf("\nArgument Passed 2: %s\n", yylval.sym);
 					printf("correct\n");
 					addToTable(0,yylval.sym,"identifier", alc);
+					printf("\n--------%s--------\n", yylval.sym);
+				}
+				else
+				{
+					printf(ANSI_COLOR_RED "ERROR: Variable is already declared\n" ANSI_COLOR_RESET);
+				}
+			};
+
+identi2 : ID {
+				int len = strlen(yylval.sym); 
+				char *buffer=(char *)malloc(len);
+				int i;
+				for (i=0;i<len-1;i++)
+				{
+					buffer[i] = yylval.sym[i];
+				}
+	
+				if(checkDeclaration(buffer))
+				{
+					printf("\nArgument Passed 2: %s\n", yylval.sym);
+					printf("correct\n");
+					addToTable(0,buffer,"identifier", alc);
+					printf("\n--------%s--------\n", buffer);
 				}
 				else
 				{

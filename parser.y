@@ -107,7 +107,7 @@
 		struct symbolTable *temp = hash[type][x];
 		while(temp!=NULL)
 		{
-			if (strcmp(temp->symbol, sym)==0)
+			if (strcmp(temp->symbol, sym)==0 && globalScope == temp->scope)
 			{
 				return 0;
 			}
@@ -124,7 +124,6 @@
 		struct symbolTable *newSymbol = (struct symbolTable *)malloc(sizeof(struct symbolTable));
 		char *te = (char *)malloc(strlen(sym)+1);
 		strcpy(te, sym);
-		printf("\nArgument passed: %s\n", sym);
 		newSymbol->symbol = te;
 		newSymbol->attribute = attr;
 		newSymbol->data = dat;
@@ -154,6 +153,33 @@
 	{
 		int x = hashLocation(sym);
 		if(searchHashScope(sym, x))
+		return 1;
+		else
+		return 0;
+	}
+
+	int searchHashScope1(char *sym, int x)
+	{
+		struct symbolTable *temp = hash[0][x];
+		while(temp!=NULL)
+		{
+			int i=0;
+			if (strcmp(temp->symbol, sym)==0 && 0 == temp->scope)
+			{ return 0; }
+			for (;i<stack->top;i++)
+			{
+				if (strcmp(temp->symbol, sym)==0 && stack->array[i] == temp->scope)
+				{ return 0; }
+			}
+			temp=temp->next;
+		}
+		return 1;
+	}
+
+	int checkDeclaration1(char *sym)
+	{
+		int x = hashLocation(sym);
+		if (searchHashScope1(sym, x))
 		return 1;
 		else
 		return 0;
@@ -198,7 +224,7 @@
 
 /*The supported datatypes*/
 dataType : SHORT {alc="short";}
-		 | INT {alc="int"; printf("\n-------------INT---------\n");}
+		 | INT {alc="int";}
 		 | LONG {alc="long";}
 		 | FLOAT {alc="float";}
 		 | DOUBLE {alc="double";}
@@ -212,6 +238,7 @@ statement : declarationStatement
 		  | ifAndElseUnmatched
 		  | whileLoopStatement
 		  | expressionStatement
+		  | functionCall
 		  | jumpStatement
 		  | compoundStatement
 		  | ';'
@@ -220,6 +247,7 @@ statement : declarationStatement
 statement1 : declarationStatement
 		  | whileLoopStatement
 		  | expressionStatement
+		  | functionCall
 		  | jumpStatement
 		  | compoundStatement
 		  ;
@@ -246,7 +274,6 @@ declaration : dataType ID { int len = strlen(yylval.sym);
 								if(checkDeclaration(buffer))
 									{
 										printf("\nArgument Passed 2: %s\n", yylval.sym);
-										printf("correct\n");
 										addToTable(0,buffer,"function", alc);
 									}
 									else
@@ -258,7 +285,6 @@ declaration : dataType ID { int len = strlen(yylval.sym);
 declaration1 : dataType ID {if(checkDeclaration(yylval.sym))
 									{
 										printf("\nArgument Passed 2: %s\n", yylval.sym);
-										printf("correct\n");
 										addToTable(0,yylval.sym,"identifier", alc);
 									}
 									else
@@ -466,9 +492,11 @@ compoundStatement : startCompound statements endCompound
 				  | startCompound endCompound 
 				  ;
 
-startCompound : '{' {push(stack,globalScope++);}
+startCompound : '{' {push(stack, globalScope++);}
 			  ;
-endCompound : '}' {pop(stack); globalScope =  stack->array[stack->top];}
+endCompound : '}' {pop(stack); globalScope =  stack->array[stack->top]+1;
+					if (stack->top == -1) globalScope = 1;
+					}
 			;
 
 /*compoundStatementError : '{'
@@ -485,13 +513,14 @@ startSymbol
 	;
 
 external_declaration
-	: functionDefinition
+	: functionDefinition 
 	| declarationStatement
 	| HEADERFILE
 	;
 
-functionCall : declaration '(' ')' ';'
-			| declaration '(' parameters ')' ';'
+functionCall : identi3 '(' ')' ';'
+
+			| identi3 '(' parameters ')' ';' 
 			;
 
 parameters : parameters ',' identi1 
@@ -505,23 +534,47 @@ parameters : parameters ',' identi1
 				| identi1 '=' consta
 				| identi1 '=' identi
 				| consta
-				| string
+				| stri
 				;			
 
-functionDefinition : declaration startParenthesis ')' '{' statements endCompound
-				   | declaration startParenthesis ')' '{' endCompound
+functionDefinition : declaration '(' ')' compoundStatement
 				   | declaration startParenthesis argumentList ')' '{' statements endCompound
 				   | declaration startParenthesis argumentList ')' '{' endCompound
 				   ;		
 
 functionDeclaration : declaration '(' ')' ';'
-					| declaration startParenthesis argumentList ')' ';' {pop(stack); globalScope = stack->array[stack->top];}
+					| declaration startParenthesis argumentList ')' ';' {pop(stack); 
+					globalScope = stack->array[stack->top]+1;
+					if (stack->top==-1)
+					{
+						globalScope = 1;
+					}
+					}
 					;				   
 
-startParenthesis : '(' {push(stack,globalScope++);}
+startParenthesis : '(' {push(stack,globalScope++); }
 				 ;
 
-identi : ID {if(checkDeclaration(yylval.sym)==0)
+identi3 : ID {
+				int len = strlen(yylval.sym); 
+				char *buffer=(char *)malloc(len);
+				int i;
+				for (i=0;i<len-1;i++)
+				{
+					buffer[i] = yylval.sym[i];
+				}
+
+				if(checkDeclaration1(buffer)==0)
+								{
+									printf("\nArgument Passed : %s\n", buffer);
+								}
+								else
+								{
+									printf(ANSI_COLOR_RED "\nERROR: Function used is not declared\n" ANSI_COLOR_RESET);
+								}
+							};	
+
+identi : ID {if(checkDeclaration1(yylval.sym)==0)
 				{
 					printf("\nArgument Passed : %s\n", yylval.sym);
 				}
@@ -534,9 +587,7 @@ identi : ID {if(checkDeclaration(yylval.sym)==0)
 identi1 : ID {if(checkDeclaration(yylval.sym))
 				{
 					printf("\nArgument Passed 2: %s\n", yylval.sym);
-					printf("correct\n");
 					addToTable(0,yylval.sym,"identifier", alc);
-					printf("\n--------%s--------\n", yylval.sym);
 				}
 				else
 				{
@@ -556,15 +607,15 @@ identi2 : ID {
 				if(checkDeclaration(buffer))
 				{
 					printf("\nArgument Passed 2: %s\n", yylval.sym);
-					printf("correct\n");
 					addToTable(0,buffer,"identifier", alc);
-					printf("\n--------%s--------\n", buffer);
 				}
 				else
 				{
 					printf(ANSI_COLOR_RED "ERROR: Variable is already declared\n" ANSI_COLOR_RESET);
 				}
 			};
+
+		
 
 consta : CONSTANT {addToTable(1,yylval.sym,"constant", "");};
 stri : STR {addToTable(1,yylval.sym,"string", "");};

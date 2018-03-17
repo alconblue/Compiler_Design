@@ -13,7 +13,7 @@
 	int integer;
 	float floating_point;
 	char *sym;
-
+	char *val;
 }
 
 %start startSymbol
@@ -30,6 +30,9 @@
 	int globalScope=1;
 	#define ANSI_COLOR_RED     "\x1b[31m"
 	#define ANSI_COLOR_RESET   "\x1b[0m"
+
+	int yyerror(char *msg);
+	int yylex();
 	
 	struct Stack
 	{
@@ -116,6 +119,20 @@
 		return 1;
 	}
 
+	int searchMain()
+	{ 
+		struct symbolTable *temp = hash[0][421%size];
+		while(temp!=NULL)
+		{
+			if (strcmp(temp->symbol, "main")==0 && temp->scope==0)
+			{
+				return 1;
+			}
+			temp = temp->next;
+		}
+		return 0;
+	}
+
 	void addToTable(int type, char *sym, char *attr, char *dat)
 	{
 		int x = hashLocation(sym);
@@ -166,7 +183,7 @@
 			int i=0;
 			if (strcmp(temp->symbol, sym)==0 && 0 == temp->scope)
 			{ return 0; }
-			for (;i<stack->top;i++)
+			for (;i<=stack->top;i++)
 			{
 				if (strcmp(temp->symbol, sym)==0 && stack->array[i] == temp->scope)
 				{ return 0; }
@@ -229,7 +246,7 @@ dataType : SHORT {alc="short";}
 		 | FLOAT {alc="float";}
 		 | DOUBLE {alc="double";}
 		 | VOID {alc="void";}
-		 ;
+		 ;	 
 
 
 	/*List of all statements*/
@@ -306,8 +323,8 @@ argumentList : argumentList ',' completeDeclaration
 				| completeDeclaration
 				;
 
-declarationList : dataType identi2 ',' identifierList
-				| dataType identi2
+declarationList : dataType identi1 ',' identifierList
+				| dataType identi1
 				;				
 
 identifierList : identifierList ',' identi1 
@@ -478,7 +495,7 @@ assignment_operator
 	/*Jump statements include continue,break and return statements*/
 jumpStatement : CONTINUE ';'
 			  | BREAK ';'
-			  | RETURN ';'
+			  | RETURN ';'			
 			  | RETURN expression ';'
 			  ;
 /*			jumpStatementError : CONTINUE 
@@ -559,8 +576,9 @@ identi3 : ID {
 				int len = strlen(yylval.sym); 
 				char *buffer=(char *)malloc(len);
 				int i;
-				for (i=0;i<len-1;i++)
+				for (i=0;i<len;i++)
 				{
+					if ((yylval.sym[i]>='a' && yylval.sym[i]<='z') || (yylval.sym[i]>='A' && yylval.sym[i]<='Z') || (yylval.sym[i]>='0' && yylval.sym[i]<='9') || (yylval.sym[i]=='_'))
 					buffer[i] = yylval.sym[i];
 				}
 
@@ -574,33 +592,33 @@ identi3 : ID {
 								}
 							};	
 
-identi : ID {if(checkDeclaration1(yylval.sym)==0)
+identi : ID {
+				int len = strlen(yylval.sym); 
+				char *buffer=(char *)malloc(len);
+				int i;
+				for (i=0;i<len;i++)
 				{
-					printf("\nArgument Passed : %s\n", yylval.sym);
+				if ((yylval.sym[i]>='a' && yylval.sym[i]<='z') || (yylval.sym[i]>='A' && yylval.sym[i]<='Z') || (yylval.sym[i]>='0' && yylval.sym[i]<='9') || (yylval.sym[i]=='_'))
+					buffer[i] = yylval.sym[i];
+				}
+			if(checkDeclaration1(buffer)==0)
+				{
+					printf("\nArgument Passed : %s\n", buffer);
 				}
 			else
 			{
+				printf("\n-----%s-------\n", buffer);
 				printf(ANSI_COLOR_RED "\nERROR: Variable used is not declared\n" ANSI_COLOR_RESET);
 			}
 		};						
 
-identi1 : ID {if(checkDeclaration(yylval.sym))
-				{
-					printf("\nArgument Passed 2: %s\n", yylval.sym);
-					addToTable(0,yylval.sym,"identifier", alc);
-				}
-				else
-				{
-					printf(ANSI_COLOR_RED "ERROR: Variable is already declared\n" ANSI_COLOR_RESET);
-				}
-			};
-
-identi2 : ID {
+identi1 : ID {
 				int len = strlen(yylval.sym); 
 				char *buffer=(char *)malloc(len);
 				int i;
-				for (i=0;i<len-1;i++)
+				for (i=0;i<len;i++)
 				{
+				if ((yylval.sym[i]>='a' && yylval.sym[i]<='z') || (yylval.sym[i]>='A' && yylval.sym[i]<='Z') || (yylval.sym[i]>='0' && yylval.sym[i]<='9') || (yylval.sym[i]=='_'))
 					buffer[i] = yylval.sym[i];
 				}
 	
@@ -627,6 +645,8 @@ int main()
 {
 	init();
 	yyparse();
+	if (searchMain()==0)
+		printf(ANSI_COLOR_RED "ERROR: main function not present\n" ANSI_COLOR_RESET);
 	display();
 }
 
@@ -635,7 +655,7 @@ int yywrap()
 	return 1;
 }
 
-void yyerror(char *msg)
+int yyerror(char *msg)
 {
 	printf("Error: %s in line %d\n",msg, lineNo);
 }

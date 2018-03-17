@@ -1161,7 +1161,7 @@ YY_RULE_SETUP
 case 56:
 YY_RULE_SETUP
 #line 90 "la.l"
-{printf("%s is not equal comparator\n", yytext);  return 'NE';}
+{printf("%s is not equal comparator\n", yytext);  return NE;}
 	YY_BREAK
 case 57:
 YY_RULE_SETUP

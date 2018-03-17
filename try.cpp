@@ -1,8 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
-void fun(){}
-fun();
-int main()
-{
-	return 0;
+int a;
+int main() {
+	char a;
 }

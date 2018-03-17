@@ -87,7 +87,7 @@ while {printf("Keyword while found\n");  yylval.sym="while"; return WHILE;}
 "++"  {printf("%s is increment operator\n",yytext);  return INC;}
 "--"  {printf("%s is decrement operator\n", yytext);  return DEC;}
 "=="  {printf("%s is equal comparator\n", yytext);  return EQ;}
-"!="  {printf("%s is not equal comparator\n", yytext);  return 'NE';}
+"!="  {printf("%s is not equal comparator\n", yytext);  return NE;}
 ">"   {printf("%s is greater than comparator\n", yytext);  return '>';} 
 "<"   {printf("%s is less than comparator\n", yytext);  return '<';}
 ">="  {printf("%s is greater than equal\n", yytext);  return GE;} 

@@ -171,7 +171,7 @@ union YYSTYPE
 	int integer;
 	float floating_point;
 	char *sym;
-
+	char *val;
 
 #line 177 "y.tab.h" /* yacc.c:1909  */
 };

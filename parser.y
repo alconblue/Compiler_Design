@@ -245,9 +245,7 @@ dataType : SHORT {alc="short";}
 		 | LONG {alc="long";}
 		 | FLOAT {alc="float";}
 		 | DOUBLE {alc="double";}
-		 | VOID {alc="void";}
 		 ;	 
-
 
 	/*List of all statements*/
 statement : declarationStatement
@@ -297,7 +295,18 @@ declaration : dataType ID { int len = strlen(yylval.sym);
 									{
 										printf(ANSI_COLOR_RED "ERROR: Function is already declared\n" ANSI_COLOR_RESET);
 									}
-								};
+								}
+			| void ID {	if(checkDeclaration(yylval.sym))
+							{
+								printf("\nArgument Passed 2: %s\n", yylval.sym);
+								addToTable(0,yylval.sym,"function", alc);
+							}
+							else
+							{
+								printf(ANSI_COLOR_RED "ERROR: Function is already declared\n" ANSI_COLOR_RESET);
+							}
+						} 
+			;
 
 declaration1 : dataType ID {if(checkDeclaration(yylval.sym))
 									{
@@ -408,6 +417,7 @@ unary_expression
 	| unary_operator cast_expression
 	| SIZEOF unary_expression
 	| SIZEOF '(' dataType ')'
+	| SIZEOF '(' VOID ')'
 	;
 unary_operator
 	: '&'
@@ -637,6 +647,7 @@ identi1 : ID {
 
 consta : CONSTANT {addToTable(1,yylval.sym,"constant", "");};
 stri : STR {addToTable(1,yylval.sym,"string", "");};
+void : VOID {alc="void";};
 %%
 
 #include<stdio.h>

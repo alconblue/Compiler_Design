@@ -28,6 +28,8 @@
 	char *alc=0;
 	int globalIndex=0;
 	int globalScope=1;
+	char *alc1=0;
+	int setDatatype=1;
 	#define ANSI_COLOR_RED     "\x1b[31m"
 	#define ANSI_COLOR_RESET   "\x1b[0m"
 
@@ -131,6 +133,28 @@
 			temp = temp->next;
 		}
 		return 0;
+	}
+
+	int getDatatype(char *sym)
+	{
+		int x = hashLocation(sym);
+		int i=stack->top;
+		for(;i>=0;i--)
+		{
+			struct symbolTable *temp = hash[0][x];
+			while(temp!=NULL)
+			{
+			if(strcmp(temp->symbol, sym)==0 && temp->scope == stack->array[i])
+			{
+				if (strcmp(temp->data, "int")==0)
+				return 1;
+				else if(strcmp(temp->data, "void")==0)
+				return 0;
+			}
+			temp = temp->next;
+			}
+		}
+		return -1;
 	}
 
 	void addToTable(int type, char *sym, char *attr, char *dat)
@@ -295,6 +319,7 @@ declaration : dataType ID { int len = strlen(yylval.sym);
 									{
 										printf(ANSI_COLOR_RED "ERROR: Function is already declared\n" ANSI_COLOR_RESET);
 									}
+								alc1 = alc;	
 								}
 			| void ID {	if(checkDeclaration(yylval.sym))
 							{
@@ -305,6 +330,7 @@ declaration : dataType ID { int len = strlen(yylval.sym);
 							{
 								printf(ANSI_COLOR_RED "ERROR: Function is already declared\n" ANSI_COLOR_RESET);
 							}
+						alc1 = alc;
 						} 
 			;
 
@@ -319,6 +345,34 @@ declaration1 : dataType ID {if(checkDeclaration(yylval.sym))
 									}
 								};								
 
+declaration2 : dataType ID { int len = strlen(yylval.sym); 
+								char *buffer=(char *)malloc(len);
+								int i;
+								for (i=0;i<len-1;i++)
+								{
+									buffer[i] = yylval.sym[i];
+								}
+								if(checkDeclaration(buffer))
+									{
+										printf("\nArgument Passed 2: %s\n", yylval.sym);
+										addToTable(0,buffer,"function", alc);
+									}
+									else
+									{
+										printf(ANSI_COLOR_RED "ERROR: Function is already declared\n" ANSI_COLOR_RESET);
+									}
+								}
+			| void ID {	if(checkDeclaration(yylval.sym))
+							{
+								printf("\nArgument Passed 2: %s\n", yylval.sym);
+								addToTable(0,yylval.sym,"function", alc);
+							}
+							else
+							{
+								printf(ANSI_COLOR_RED "ERROR: Function is already declared\n" ANSI_COLOR_RESET);
+							}
+						} 
+			;
 
 declarationAndAssignment : declaration1 '=' consta
 					     | declaration1 '=' stri
@@ -505,7 +559,27 @@ assignment_operator
 	/*Jump statements include continue,break and return statements*/
 jumpStatement : CONTINUE ';'
 			  | BREAK ';'
-			  | RETURN ';'			
+			  | RETURN ';' {
+			  if (alc1!=NULL && strcmp(alc1,"void")!=0) printf(ANSI_COLOR_RED "\nERROR: Function type is %s return void found\n" ANSI_COLOR_RESET, alc1);}
+			  | RETURN ID ';' {
+			  	int len = strlen(yylval.sym); 
+				char *buffer=(char *)malloc(len);
+				int i;
+				for (i=0;i<len;i++)
+				{
+				if ((yylval.sym[i]>='a' && yylval.sym[i]<='z') || (yylval.sym[i]>='A' && yylval.sym[i]<='Z') || (yylval.sym[i]>='0' && yylval.sym[i]<='9') || (yylval.sym[i]=='_'))
+					buffer[i] = yylval.sym[i];
+				}
+				setDatatype = getDatatype(buffer);
+				if(setDatatype==1 && strcmp(alc1, "int"))
+					printf(ANSI_COLOR_RED "\nERROR: Function with return type int returning void\n" ANSI_COLOR_RESET);
+				else if (setDatatype==0 && strcmp(alc1, "void"))
+					printf(ANSI_COLOR_RED "\nERROR: Function with return type void returning int\n" ANSI_COLOR_RESET);
+				}
+				| RETURN consta ';' {
+				if (strcmp(alc1, "void")==0)
+					printf(ANSI_COLOR_RED "\nERROR: Function with return type void returning value\n" ANSI_COLOR_RESET);
+				}
 			  | RETURN expression ';'
 			  ;
 /*			jumpStatementError : CONTINUE 
@@ -565,12 +639,12 @@ parameters : parameters ',' identi1
 				;			
 
 functionDefinition : declaration '(' ')' compoundStatement
-				   | declaration startParenthesis argumentList ')' '{' statements endCompound
+				   | declaration startParenthesis argumentList ')' '{' statements endCompound {setDatatype = 0;}
 				   | declaration startParenthesis argumentList ')' '{' endCompound
 				   ;		
 
-functionDeclaration : declaration '(' ')' ';'
-					| declaration startParenthesis argumentList ')' ';' {pop(stack); 
+functionDeclaration : declaration2 '(' ')' ';'
+					| declaration2 startParenthesis argumentList ')' ';' {pop(stack); 
 					globalScope = stack->array[stack->top]+1;
 					if (stack->top==-1)
 					{

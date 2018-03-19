@@ -397,6 +397,23 @@ int yyparse (void);
 		return 0;
 	}
 
+	char* getAttribute(char *sym)
+	{
+		char abc[20]="";
+		char *ans = abc;
+		int x = hashLocation(sym);
+		struct symbolTable *temp = hash[0][x];
+		while(temp!=NULL)
+		{
+			if (strcmp(temp->symbol, sym)==0 && 0 == temp->scope) //Need to check if comparing scope with 0 is fine
+			{ 
+				return temp->attribute; 
+			}
+			temp=temp->next;
+		}
+		return ans;
+	}
+
 	int searchHashScope1(char *sym, int x)
 	{
 		struct symbolTable *temp = hash[0][x];
@@ -423,6 +440,8 @@ int yyparse (void);
 		else
 		return 0;
 	}
+
+
 
 	void display()
 	{
@@ -458,7 +477,7 @@ int yyparse (void);
 		printf("-------------------------------------------------------------------\n");
 	}
 
-#line 462 "y.tab.c" /* yacc.c:358  */
+#line 481 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -761,23 +780,23 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   243,   243,   244,   245,   246,   247,   251,   252,   253,
-     254,   255,   256,   257,   258,   259,   262,   263,   264,   265,
-     266,   267,   270,   271,   278,   279,   282,   299,   311,   323,
-     324,   327,   328,   331,   332,   335,   336,   339,   340,   341,
-     342,   343,   344,   345,   346,   360,   362,   363,   365,   366,
-     379,   387,   389,   390,   393,   394,   395,   396,   399,   400,
-     401,   402,   403,   404,   405,   409,   410,   414,   415,   416,
-     417,   418,   419,   420,   423,   424,   425,   426,   427,   428,
-     431,   432,   435,   436,   437,   438,   441,   442,   443,   446,
-     447,   448,   451,   452,   453,   454,   455,   458,   459,   460,
-     463,   464,   467,   468,   471,   472,   475,   476,   479,   480,
-     483,   484,   487,   488,   491,   492,   493,   494,   495,   496,
-     497,   498,   499,   500,   501,   506,   507,   508,   509,   518,
-     519,   522,   524,   538,   539,   543,   544,   545,   548,   550,
-     553,   554,   555,   556,   557,   558,   559,   560,   561,   562,
-     563,   564,   567,   568,   569,   572,   573,   582,   585,   605,
-     625,   648,   649,   650
+       0,   262,   262,   263,   264,   265,   266,   270,   271,   272,
+     273,   274,   275,   276,   277,   278,   281,   282,   283,   284,
+     285,   286,   289,   290,   297,   298,   301,   318,   330,   342,
+     343,   346,   347,   350,   351,   354,   355,   358,   359,   360,
+     361,   362,   363,   364,   365,   379,   381,   382,   384,   385,
+     398,   406,   408,   409,   412,   413,   414,   415,   418,   419,
+     420,   421,   422,   423,   424,   428,   429,   433,   434,   435,
+     436,   437,   438,   439,   442,   443,   444,   445,   446,   447,
+     450,   451,   454,   455,   456,   457,   460,   461,   462,   465,
+     466,   467,   470,   471,   472,   473,   474,   477,   478,   479,
+     482,   483,   486,   487,   490,   491,   494,   495,   498,   499,
+     502,   503,   506,   507,   510,   511,   512,   513,   514,   515,
+     516,   517,   518,   519,   520,   525,   526,   527,   528,   537,
+     538,   541,   543,   557,   558,   562,   563,   564,   567,   569,
+     572,   573,   574,   575,   576,   577,   578,   579,   580,   581,
+     582,   583,   586,   587,   588,   591,   592,   601,   604,   631,
+     651,   674,   675,   676
 };
 #endif
 
@@ -1830,37 +1849,37 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 243 "parser.y" /* yacc.c:1646  */
+#line 262 "parser.y" /* yacc.c:1646  */
     {alc="short";}
-#line 1836 "y.tab.c" /* yacc.c:1646  */
+#line 1855 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 244 "parser.y" /* yacc.c:1646  */
+#line 263 "parser.y" /* yacc.c:1646  */
     {alc="int";}
-#line 1842 "y.tab.c" /* yacc.c:1646  */
+#line 1861 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 245 "parser.y" /* yacc.c:1646  */
+#line 264 "parser.y" /* yacc.c:1646  */
     {alc="long";}
-#line 1848 "y.tab.c" /* yacc.c:1646  */
+#line 1867 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 246 "parser.y" /* yacc.c:1646  */
+#line 265 "parser.y" /* yacc.c:1646  */
     {alc="float";}
-#line 1854 "y.tab.c" /* yacc.c:1646  */
+#line 1873 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 247 "parser.y" /* yacc.c:1646  */
+#line 266 "parser.y" /* yacc.c:1646  */
     {alc="double";}
-#line 1860 "y.tab.c" /* yacc.c:1646  */
+#line 1879 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 282 "parser.y" /* yacc.c:1646  */
+#line 301 "parser.y" /* yacc.c:1646  */
     { int len = strlen(yylval.sym); 
 								char *buffer=(char *)malloc(len);
 								int i;
@@ -1878,11 +1897,11 @@ yyreduce:
 										printf(ANSI_COLOR_RED "ERROR: Function is already declared\n" ANSI_COLOR_RESET);
 									}
 								}
-#line 1882 "y.tab.c" /* yacc.c:1646  */
+#line 1901 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 299 "parser.y" /* yacc.c:1646  */
+#line 318 "parser.y" /* yacc.c:1646  */
     {	if(checkDeclaration(yylval.sym))
 							{
 								printf("\nArgument Passed 2: %s\n", yylval.sym);
@@ -1893,11 +1912,11 @@ yyreduce:
 								printf(ANSI_COLOR_RED "ERROR: Function is already declared\n" ANSI_COLOR_RESET);
 							}
 						}
-#line 1897 "y.tab.c" /* yacc.c:1646  */
+#line 1916 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 311 "parser.y" /* yacc.c:1646  */
+#line 330 "parser.y" /* yacc.c:1646  */
     {if(checkDeclaration(yylval.sym))
 									{
 										printf("\nArgument Passed 2: %s\n", yylval.sym);
@@ -1908,25 +1927,25 @@ yyreduce:
 										printf(ANSI_COLOR_RED "ERROR: Variable is already declared\n" ANSI_COLOR_RESET);
 									}
 								}
-#line 1912 "y.tab.c" /* yacc.c:1646  */
+#line 1931 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 131:
-#line 522 "parser.y" /* yacc.c:1646  */
+#line 541 "parser.y" /* yacc.c:1646  */
     {push(stack, globalScope++);}
-#line 1918 "y.tab.c" /* yacc.c:1646  */
+#line 1937 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 132:
-#line 524 "parser.y" /* yacc.c:1646  */
+#line 543 "parser.y" /* yacc.c:1646  */
     {pop(stack); globalScope =  stack->array[stack->top]+1;
 					if (stack->top == -1) globalScope = 1;
 					}
-#line 1926 "y.tab.c" /* yacc.c:1646  */
+#line 1945 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 156:
-#line 573 "parser.y" /* yacc.c:1646  */
+#line 592 "parser.y" /* yacc.c:1646  */
     {pop(stack); 
 					globalScope = stack->array[stack->top]+1;
 					if (stack->top==-1)
@@ -1934,17 +1953,17 @@ yyreduce:
 						globalScope = 1;
 					}
 					}
-#line 1938 "y.tab.c" /* yacc.c:1646  */
+#line 1957 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 157:
-#line 582 "parser.y" /* yacc.c:1646  */
+#line 601 "parser.y" /* yacc.c:1646  */
     {push(stack,globalScope++); }
-#line 1944 "y.tab.c" /* yacc.c:1646  */
+#line 1963 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 158:
-#line 585 "parser.y" /* yacc.c:1646  */
+#line 604 "parser.y" /* yacc.c:1646  */
     {
 				int len = strlen(yylval.sym); 
 				char *buffer=(char *)malloc(len);
@@ -1957,18 +1976,25 @@ yyreduce:
 
 				if(checkDeclaration1(buffer)==0)
 								{
-									printf("\nArgument Passed : %s\n", buffer);
+									if(strcmp(getAttribute(buffer),"function")!=0)
+									{
+										printf(ANSI_COLOR_RED "\nERROR: %s is not a function\n" ANSI_COLOR_RESET, buffer);
+									}
+									else
+									{	
+										printf("\nArgument Passed : %s\n", buffer);
+									}
 								}
 								else
 								{
 									printf(ANSI_COLOR_RED "\nERROR: Function used is not declared\n" ANSI_COLOR_RESET);
 								}
 							}
-#line 1968 "y.tab.c" /* yacc.c:1646  */
+#line 1994 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 159:
-#line 605 "parser.y" /* yacc.c:1646  */
+#line 631 "parser.y" /* yacc.c:1646  */
     {
 				int len = strlen(yylval.sym); 
 				char *buffer=(char *)malloc(len);
@@ -1988,11 +2014,11 @@ yyreduce:
 				printf(ANSI_COLOR_RED "\nERROR: Variable used is not declared\n" ANSI_COLOR_RESET);
 			}
 		}
-#line 1992 "y.tab.c" /* yacc.c:1646  */
+#line 2018 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 160:
-#line 625 "parser.y" /* yacc.c:1646  */
+#line 651 "parser.y" /* yacc.c:1646  */
     {
 				int len = strlen(yylval.sym); 
 				char *buffer=(char *)malloc(len);
@@ -2013,29 +2039,29 @@ yyreduce:
 					printf(ANSI_COLOR_RED "ERROR: Variable is already declared\n" ANSI_COLOR_RESET);
 				}
 			}
-#line 2017 "y.tab.c" /* yacc.c:1646  */
+#line 2043 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 161:
-#line 648 "parser.y" /* yacc.c:1646  */
+#line 674 "parser.y" /* yacc.c:1646  */
     {addToTable(1,yylval.sym,"constant", "");}
-#line 2023 "y.tab.c" /* yacc.c:1646  */
+#line 2049 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 162:
-#line 649 "parser.y" /* yacc.c:1646  */
+#line 675 "parser.y" /* yacc.c:1646  */
     {addToTable(1,yylval.sym,"string", "");}
-#line 2029 "y.tab.c" /* yacc.c:1646  */
+#line 2055 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 163:
-#line 650 "parser.y" /* yacc.c:1646  */
+#line 676 "parser.y" /* yacc.c:1646  */
     {alc="void";}
-#line 2035 "y.tab.c" /* yacc.c:1646  */
+#line 2061 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 2039 "y.tab.c" /* yacc.c:1646  */
+#line 2065 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2263,7 +2289,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 651 "parser.y" /* yacc.c:1906  */
+#line 677 "parser.y" /* yacc.c:1906  */
 
 
 #include<stdio.h>

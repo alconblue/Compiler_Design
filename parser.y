@@ -28,8 +28,12 @@
 	char *alc=0;
 	int globalIndex=0;
 	int globalScope=1;
+	int currentScope=1;
+	int newScope=1;
 	char *alc1=0;
 	int setDatatype=1;
+	int rhs=0;
+	int whileStart=0;
 	#define ANSI_COLOR_RED     "\x1b[31m"
 	#define ANSI_COLOR_RESET   "\x1b[0m"
 
@@ -79,15 +83,18 @@
 		char *data;
 		struct symbolTable *next;
 		int scope;
+		int nesting;
 	};
 	
 	struct symbolTable *hash[2][20];
 	struct Stack* stack;
+	struct Stack* stack1;
 	int i=0;
 	
 	void init()
 	{
 	 	stack = createStack(100);
+	 	stack1 = createStack(100);
 		for(;i<size;i++)
 		{
 			hash[0][i] = NULL;
@@ -146,7 +153,9 @@
 			{
 			if(strcmp(temp->symbol, sym)==0 && temp->scope == stack->array[i])
 			{
-				if (strcmp(temp->data, "int")==0)
+				if (strcmp(temp->data, "float")==0)
+				return 2;
+				else if (strcmp(temp->data, "int")==0)
 				return 1;
 				else if(strcmp(temp->data, "void")==0)
 				return 0;
@@ -170,6 +179,7 @@
 		newSymbol->data = dat;
 		newSymbol->next = NULL;
 		newSymbol->index = globalIndex + 1;
+		newSymbol->nesting = currentScope - 1;
 		newSymbol->scope = globalScope - 1;
 		globalIndex++;
 		struct symbolTable *temp = hash[type][x];
@@ -231,14 +241,14 @@
 		int k=0;
 		printf("\n\nSYMBOL TABLE:\n");
 		printf("------------------------------------------------------------------------------------------------------------\n");
-		printf("%*s\t|\t%*s\t|\t%*s\t|\t%*s\t|\t%*s\n", 10, "INDEX", 10, "SYMBOL", 10, "ATTRIBUTE", 10, "DATATYPE", 10, "SCOPE");
+		printf("%*s\t|\t%*s\t|\t%*s\t|\t%*s\t|\t%*s\t|\t%*s\n", 10, "INDEX", 10, "SYMBOL", 10, "ATTRIBUTE", 10, "DATATYPE", 10, "SCOPE", 10, "NESTING");
 		printf("------------------------------------------------------------------------------------------------------------\n");
 		for(;k<size;k++)
 		{
 			struct symbolTable *temp = hash[0][k];
 			while(temp!=NULL)
 			{
-				printf("%*d\t|\t%*s\t|\t%*s\t|\t%*s\t|\t%*d\n",10, temp->index, 10, temp->symbol, 10, temp->attribute, 10, temp->data, 10, temp->scope);
+				printf("%*d\t|\t%*s\t|\t%*s\t|\t%*s\t|\t%*d\t|\t%*d\n",10, temp->index, 10, temp->symbol, 10, temp->attribute, 10, temp->data, 10, temp->scope, 10, temp->nesting);
 				temp = temp->next;
 			}
 		}
@@ -388,14 +398,14 @@ argumentList : argumentList ',' completeDeclaration
 
 declarationList : dataType identi1 ',' identifierList
 				| dataType identi1
+				| dataType identi1 '=' consta
+				| dataType identi1 '=' identi
 				;				
 
-identifierList : identifierList ',' identi1 
-				| identifierList ',' identi1 '=' stri
+identifierList : identifierList ',' identi1
 				| identifierList ',' identi1 '=' consta
 				| identifierList ',' identi1 '=' identi 
-				| identi1 
-				| identi1 '=' stri
+				| identi1
 				| identi1 '=' consta
 				| identi1 '=' identi
 				;
@@ -430,8 +440,10 @@ ifAndElseUnmatched : IF '(' expression ')' ifAndElseMatched1 ELSE ifAndElseUnmat
 
 
 	/*While loop*/
-whileLoopStatement : WHILE '(' expression ')' statement
+whileLoopStatement : WHILE whileParanthesisStart expression whileParanthesisEnd statement
 				   		;
+whileParanthesisStart : '(' {whileStart=1;};
+whileParanthesisEnd : ')' {whileStart=0;};				   		
 /*whileLoopStatementError : WHILE expression ')' statement {addToTable(0,"while","keyword");}
 						| WHILE '(' expression statement {addToTable(0,"while","keyword");}
 						;*/
@@ -444,9 +456,17 @@ expression : assignment_expression
 		   | expression ',' assignment_expression
 		   ;
 primary_expression
-	: identi
-	| consta
-	| stri
+	: identi {int len = strlen(yylval.sym); 
+				char *buffer=(char *)malloc(len);
+				int i;
+				for (i=0;i<len;i++)
+				{
+				if ((yylval.sym[i]>='a' && yylval.sym[i]<='z') || (yylval.sym[i]>='A' && yylval.sym[i]<='Z') || (yylval.sym[i]>='0' && yylval.sym[i]<='9') || (yylval.sym[i]=='_'))
+					buffer[i] = yylval.sym[i];
+				}
+				printf("\n----------%s---------\n", buffer);
+				if(whileStart==1 && getDatatype(buffer)!=1) printf(ANSI_COLOR_RED "\nERROR: Condition of while has to be int\n" ANSI_COLOR_RESET);}
+	| consta {if(rhs==0) printf(ANSI_COLOR_RED "\nERROR: Lvalue required to be identifier\n" ANSI_COLOR_RESET);}
 	| '(' expression ')'
 	;
 postfix_expression
@@ -542,17 +562,17 @@ assignment_expression
 	| unary_expression assignment_operator assignment_expression
 	;
 assignment_operator
-	: '='
-	| MUL_ASSIGN
-	| DIV_ASSIGN
-	| MOD_ASSIGN
-	| ADD_ASSIGN
-	| SUB_ASSIGN
-	| LEFT_ASSIGN
-	| RIGHT_ASSIGN
-	| AND_ASSIGN
-	| XOR_ASSIGN
-	| OR_ASSIGN
+	: '=' {rhs=1;}
+	| MUL_ASSIGN {rhs=1;}
+	| DIV_ASSIGN {rhs=1;} 
+	| MOD_ASSIGN {rhs=1;}
+	| ADD_ASSIGN {rhs=1;}
+	| SUB_ASSIGN {rhs=1;}
+	| LEFT_ASSIGN {rhs=1;}
+	| RIGHT_ASSIGN {rhs=1;}
+	| AND_ASSIGN {rhs=1;}
+	| XOR_ASSIGN {rhs=1;}
+	| OR_ASSIGN {rhs=1;}
 	;
 
 
@@ -593,10 +613,14 @@ compoundStatement : startCompound statements endCompound
 				  | startCompound endCompound 
 				  ;
 
-startCompound : '{' {push(stack, globalScope++);}
+startCompound : '{' {push(stack, newScope++); globalScope = newScope;
+					push(stack1, currentScope++);
+					}
 			  ;
 endCompound : '}' {pop(stack); globalScope =  stack->array[stack->top]+1;
 					if (stack->top == -1) globalScope = 1;
+					pop(stack1); currentScope =  stack1->array[stack1->top]+1;
+					if (stack1->top == -1) currentScope = 1;
 					}
 			;
 
@@ -625,13 +649,11 @@ functionCall : identi3 '(' ')' ';'
 			;
 
 parameters : parameters ',' identi1 
-				| parameters ',' identi1 '=' stri
 				| parameters ',' identi1 '=' consta
 				| parameters ',' identi1 '=' identi 
 				| parameters ',' consta
 				| parameters ',' stri
-				| identi1 
-				| identi1 '=' stri
+				| identi1
 				| identi1 '=' consta
 				| identi1 '=' identi
 				| consta
@@ -650,10 +672,13 @@ functionDeclaration : declaration2 '(' ')' ';'
 					{
 						globalScope = 1;
 					}
+					pop(stack1); currentScope = stack1->array[stack1->top]+1;
+					if (stack1->top == -1) currentScope = 1;
 					}
 					;				   
 
-startParenthesis : '(' {push(stack,globalScope++); }
+startParenthesis : '(' {push(stack,newScope++); globalScope = newScope;
+						push(stack1,currentScope++);}
 				 ;
 
 identi3 : ID {

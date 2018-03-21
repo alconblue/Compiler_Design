@@ -209,6 +209,23 @@
 		return 0;
 	}
 
+	char* getAttribute(char *sym)
+	{
+		char abc[20]="";
+		char *ans = abc;
+		int x = hashLocation(sym);
+		struct symbolTable *temp = hash[0][x];
+		while(temp!=NULL)
+		{
+			if (strcmp(temp->symbol, sym)==0 && 0 == temp->scope) //Need to check if comparing scope with 0 is fine
+			{ 
+				return temp->attribute; 
+			}
+			temp=temp->next;
+		}
+		return ans;
+	}
+
 	int searchHashScope1(char *sym, int x)
 	{
 		struct symbolTable *temp = hash[0][x];
@@ -235,6 +252,8 @@
 		else
 		return 0;
 	}
+
+
 
 	void display()
 	{
@@ -693,7 +712,14 @@ identi3 : ID {
 
 				if(checkDeclaration1(buffer)==0)
 								{
-									printf("\nArgument Passed : %s\n", buffer);
+									if(strcmp(getAttribute(buffer),"function")!=0)
+									{
+										printf(ANSI_COLOR_RED "\nERROR: %s is not a function\n" ANSI_COLOR_RESET, buffer);
+									}
+									else
+									{	
+										printf("\nArgument Passed : %s\n", buffer);
+									}
 								}
 								else
 								{

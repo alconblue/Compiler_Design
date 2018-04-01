@@ -30,12 +30,16 @@
 	int globalScope=1;
 	int newScope=1;
 	char *alc1=0;
-	int setDatatype=1;
 	char *alc2=0;
 	char *alc3=0;
+	int setDatatype=1;
 	int flag=0;
+	int flag2=0;
 	int procFlag=-1;
 	int parameterNumber=0;
+	int currentScope=1;
+	int rhs=0;
+	int whileStart=0;
 	#define ANSI_COLOR_RED     "\x1b[31m"
 	#define ANSI_COLOR_RESET   "\x1b[0m"
 
@@ -87,7 +91,7 @@
 		int scope;
 		int procedureDefinitionFlag;
 		struct parameterChain *params;
-
+		int nesting;
 	};
 
 	struct parameterChain{
@@ -98,6 +102,7 @@
 	
 	struct symbolTable *hash[2][20];
 	struct Stack* stack;
+	struct Stack* stack1;
 	int i=0;
 	
 	void init()
@@ -105,6 +110,7 @@
 	 	stack = createStack(100);
 	 	alc2 = (char*)malloc(sizeof(char)*100);
 	 	alc3 = (char*)malloc(sizeof(char)*100);
+	 	stack1 = createStack(100);
 		for(;i<size;i++)
 		{
 			hash[0][i] = NULL;
@@ -163,7 +169,9 @@
 			{
 			if(strcmp(temp->symbol, sym)==0 && temp->scope == stack->array[i])
 			{
-				if (strcmp(temp->data, "int")==0)
+				if (strcmp(temp->data, "float")==0)
+				return 2;
+				else if (strcmp(temp->data, "int")==0)
 				return 1;
 				else if(strcmp(temp->data, "void")==0)
 				return 0;
@@ -187,6 +195,7 @@
 		newSymbol->data = dat;
 		newSymbol->next = NULL;
 		newSymbol->index = globalIndex + 1;
+		newSymbol->nesting = currentScope - 1;
 		newSymbol->scope = globalScope - 1;
 		newSymbol->params = NULL;
 		newSymbol->procedureDefinitionFlag = procFlag;
@@ -200,10 +209,9 @@
 	{
 		int x = hashLocation(alc2);
 		struct symbolTable *temp = hash[0][x];
-		printf("\naaaaaaa %s %s %d %d %d\n",alc2, temp->symbol,strcmp(temp->symbol, alc2),globalScope,newScope);
 		while(strcmp(temp->symbol, alc2)!=0 )
-			temp=temp->next;			
 		{
+			temp=temp->next;			
 			if(temp==NULL)
 			{
 				printf("\nTemp = null when searching for function name in symbol table\n");
@@ -264,7 +272,7 @@
 				struct parameterChain *temp1 = temp->params;
 				while(temp1!=NULL)
 				{
-					printf("\nParams are %s  %s\n",temp1->name,temp1->dataType);
+					//printf("\nParams are %s  %s\n",temp1->name,temp1->dataType);
 					temp1=temp1->next;
 				}
 				return temp->attribute; 
@@ -305,6 +313,10 @@
 	{
 		int x = hashLocation(alc2);
 		struct symbolTable *temp = hash[0][x];
+		if(temp==NULL)
+		{
+			return;
+		}
 		while(strcmp(temp->symbol, alc2)!=0 || temp->scope!=0)
 		{
 			temp=temp->next;			
@@ -314,7 +326,7 @@
 				return;
 			}
 		}
-		struct parameterChain *temp1 = (struct parameterChain*)malloc(sizeof(struct parameterChain));
+		struct parameterChain *temp1;
 		temp1 = temp->params;
 		int i;
 		for(i=0;i<parameterNumber-1;i++)
@@ -326,6 +338,7 @@
 				printf(ANSI_COLOR_RED "ERROR: Arguments passes is more than expected\n" ANSI_COLOR_RESET);
 				return;
 			}
+
 		}
 
 		if(flag)
@@ -333,15 +346,16 @@
 			if(temp1->next!=NULL)
 			{
 				printf(ANSI_COLOR_RED "ERROR: Arguments passes is less than expected\n" ANSI_COLOR_RESET);
-				return;
 			}
+			return;
 		}
 
 		x = hashLocation(alc3);
-		struct symbolTable *temp2 = hash[0][x];
 		i=stack->top;
+		struct symbolTable *temp2;
 		for(;i>=0;i--)
 		{
+			temp2 = hash[0][x];
 			while(temp2!=NULL)
 			{
 			if(strcmp(temp2->symbol, alc3)==0 && temp2->scope == stack->array[i])
@@ -364,14 +378,14 @@
 		int k=0;
 		printf("\n\nSYMBOL TABLE:\n");
 		printf("--------------------------------------------------------------------------------------------------------------------------------\n");
-		printf("%*s\t|\t%*s\t|\t%*s\t|\t%*s\t|\t%*s\t|\t%*s\n", 10, "INDEX", 10, "SYMBOL", 10, "ATTRIBUTE", 10, "DATATYPE", 10, "SCOPE", 10, "ProcDefFlag");
+		printf("%*s\t|\t%*s\t|\t%*s\t|\t%*s\t|\t%*s\t|\t%*s\t|\t%*s\n", 10, "INDEX", 10, "SYMBOL", 10, "ATTRIBUTE", 10, "DATATYPE", 10, "SCOPE", 10, "ProcDefFlag", 10, "NESTING");
 		printf("--------------------------------------------------------------------------------------------------------------------------------\n");
 		for(;k<size;k++)
 		{
 			struct symbolTable *temp = hash[0][k];
 			while(temp!=NULL)
 			{
-				printf("%*d\t|\t%*s\t|\t%*s\t|\t%*s\t|\t%*d\t|\t%*d\n",10, temp->index, 10, temp->symbol, 10, temp->attribute, 10, temp->data, 10, temp->scope, 10, temp->procedureDefinitionFlag);
+				printf("%*d\t|\t%*s\t|\t%*s\t|\t%*s\t|\t%*d\t|\t%*d\t|\t%*d\n",10, temp->index, 10, temp->symbol, 10, temp->attribute, 10, temp->data, 10, temp->scope, 10, temp->procedureDefinitionFlag,10,temp->nesting);
 				temp = temp->next;
 			}
 		}
@@ -446,7 +460,6 @@ declaration : dataType ID { int len = strlen(yylval.sym);
 								}
 								if(checkDeclaration(buffer))
 									{
-										printf("\nArgument Passed 2: %s\n", yylval.sym);
 										procFlag = 1;
 										addToTable(0,buffer,"function", alc);
 										procFlag = -1;
@@ -457,13 +470,18 @@ declaration : dataType ID { int len = strlen(yylval.sym);
 									}
 								alc1 = alc;	
 								}
-			| void ID {	if(checkDeclaration(yylval.sym))
+			| void ID {	
+								int len = strlen(yylval.sym); 
+								int i;
+								for (i=0;i<len;i++)
+								{
+									alc2[i]=yylval.sym[i];
+								}
+							if(checkDeclaration(alc2))
 							{
-								printf("\nArgument Passed 2: %s\n", yylval.sym);
 								procFlag = 1;
 								addToTable(0,yylval.sym,"function", alc);
 								procFlag = -1;
-								alc2=yylval.sym;
 							}
 							else
 							{
@@ -476,7 +494,6 @@ declaration : dataType ID { int len = strlen(yylval.sym);
  /* For argument list */
 declaration1 : dataType ID {if(checkDeclaration(yylval.sym))
 									{
-										printf("\nArgument Passed 2: %s\n", yylval.sym);
 										addToTable(0,yylval.sym,"identifier", alc);
 										addParams(alc,yylval.sym);
 									}
@@ -494,10 +511,8 @@ declaration2 : dataType ID { int len = strlen(yylval.sym);
 									buffer[i] = yylval.sym[i];
 									alc2[i]=buffer[i];
 								}
-								alc2[i]='\0';
 								if(checkDeclaration(buffer))
 									{
-										printf("\nArgument Passed 2: %s\n", buffer);
 										procFlag = 0;
 										addToTable(0,buffer,"function", alc);
 										printf("\nadding function to table\n");
@@ -508,9 +523,15 @@ declaration2 : dataType ID { int len = strlen(yylval.sym);
 										printf(ANSI_COLOR_RED "ERROR: Function is already declared\n" ANSI_COLOR_RESET);
 									}
 								}
-			| void ID {	if(checkDeclaration(yylval.sym))
+			| void ID {
+							int len = strlen(yylval.sym); 
+							int i;
+							for (i=0;i<len;i++)
 							{
-								printf("\nArgument Passed 2: %s\n", yylval.sym);
+								alc2[i]=yylval.sym[i];
+							}
+							if(checkDeclaration(yylval.sym))
+							{
 								procFlag = 0;
 								addToTable(0,yylval.sym,"function", alc);
 								procFlag = -1;
@@ -537,14 +558,14 @@ argumentList : argumentList ',' completeDeclaration
 
 declarationList : dataType identi1 ',' identifierList
 				| dataType identi1
+				| dataType identi1 '=' consta
+				| dataType identi1 '=' identi
 				;				
 
-identifierList : identifierList ',' identi1 
-				| identifierList ',' identi1 '=' stri
+identifierList : identifierList ',' identi1
 				| identifierList ',' identi1 '=' consta
 				| identifierList ',' identi1 '=' identi 
-				| identi1 
-				| identi1 '=' stri
+				| identi1
 				| identi1 '=' consta
 				| identi1 '=' identi
 				;
@@ -579,8 +600,10 @@ ifAndElseUnmatched : IF '(' expression ')' ifAndElseMatched1 ELSE ifAndElseUnmat
 
 
 	/*While loop*/
-whileLoopStatement : WHILE '(' expression ')' statement
+whileLoopStatement : WHILE whileParanthesisStart expression whileParanthesisEnd statement
 				   		;
+whileParanthesisStart : '(' {whileStart=1;};
+whileParanthesisEnd : ')' {whileStart=0;};				   		
 /*whileLoopStatementError : WHILE expression ')' statement {addToTable(0,"while","keyword");}
 						| WHILE '(' expression statement {addToTable(0,"while","keyword");}
 						;*/
@@ -593,9 +616,16 @@ expression : assignment_expression
 		   | expression ',' assignment_expression
 		   ;
 primary_expression
-	: identi
-	| consta
-	| stri
+	: identi {int len = strlen(yylval.sym); 
+				char *buffer=(char *)malloc(len);
+				int i;
+				for (i=0;i<len;i++)
+				{
+				if ((yylval.sym[i]>='a' && yylval.sym[i]<='z') || (yylval.sym[i]>='A' && yylval.sym[i]<='Z') || (yylval.sym[i]>='0' && yylval.sym[i]<='9') || (yylval.sym[i]=='_'))
+					buffer[i] = yylval.sym[i];
+				}
+				if(whileStart==1 && getDatatype(buffer)!=1) printf(ANSI_COLOR_RED "\nERROR: Condition of while has to be int\n" ANSI_COLOR_RESET);}
+	| consta {if(rhs==0) printf(ANSI_COLOR_RED "\nERROR: Lvalue required to be identifier\n" ANSI_COLOR_RESET);}
 	| '(' expression ')'
 	;
 postfix_expression
@@ -652,11 +682,15 @@ shift_expression
 	;
 relational_expression
 	: shift_expression
-	| relational_expression '<' shift_expression
-	| relational_expression '>' shift_expression
+	| relational_expression gt shift_expression
+	| relational_expression lt shift_expression
 	| relational_expression LE shift_expression
 	| relational_expression GE shift_expression
 	;
+
+gt : '>' {rhs=1;};
+lt : '<' {rhs=1;};
+
 equality_expression
 	: relational_expression
 	| equality_expression EQ relational_expression
@@ -691,17 +725,17 @@ assignment_expression
 	| unary_expression assignment_operator assignment_expression
 	;
 assignment_operator
-	: '='
-	| MUL_ASSIGN
-	| DIV_ASSIGN
-	| MOD_ASSIGN
-	| ADD_ASSIGN
-	| SUB_ASSIGN
-	| LEFT_ASSIGN
-	| RIGHT_ASSIGN
-	| AND_ASSIGN
-	| XOR_ASSIGN
-	| OR_ASSIGN
+	: '=' {rhs=1;}
+	| MUL_ASSIGN {rhs=1;}
+	| DIV_ASSIGN {rhs=1;} 
+	| MOD_ASSIGN {rhs=1;}
+	| ADD_ASSIGN {rhs=1;}
+	| SUB_ASSIGN {rhs=1;}
+	| LEFT_ASSIGN {rhs=1;}
+	| RIGHT_ASSIGN {rhs=1;}
+	| AND_ASSIGN {rhs=1;}
+	| XOR_ASSIGN {rhs=1;}
+	| OR_ASSIGN {rhs=1;}
 	;
 
 
@@ -742,10 +776,14 @@ compoundStatement : startCompound statements endCompound
 				  | startCompound endCompound 
 				  ;
 
-startCompound : '{' {push(stack, newScope++); globalScope = newScope ;}
+startCompound : '{' {push(stack, newScope++); globalScope = newScope;
+					push(stack1, currentScope++);
+					}
 			  ;
 endCompound : '}' {pop(stack); globalScope =  stack->array[stack->top]+1;
 					if (stack->top == -1) globalScope = 1;
+					pop(stack1); currentScope =  stack1->array[stack1->top]+1;
+					if (stack1->top == -1) currentScope = 1;
 					}
 			;
 
@@ -770,7 +808,7 @@ external_declaration
 
 functionCall : identi3 '(' ')' ';'
 
-			| identi3 '(' parameters ')' ';' {flag=1; checkParameterType(); flag=0; parameterNumber=0;}
+			| identi3 '(' parameters ')' ';' {if(flag2==0){ flag=1; checkParameterType(); flag=0; parameterNumber=0;}}
 			;
 
 parameters : parameters ',' identi {parameterNumber++; checkParameterType();}
@@ -779,8 +817,8 @@ parameters : parameters ',' identi {parameterNumber++; checkParameterType();}
 				| parameters ',' identi '=' identi {parameterNumber++; checkParameterType();}
 				| parameters ',' consta {parameterNumber++; checkParameterType();}
 				| parameters ',' stri {parameterNumber++; checkParameterType();}
-				| identi {printf("\nParameter -> %s\n",alc3); parameterNumber++; checkParameterType();}
-				| identi '=' stri {parameterNumber++;} {parameterNumber++; checkParameterType();}
+				| identi { parameterNumber++; checkParameterType();}
+				| identi '=' stri {parameterNumber++; checkParameterType();}
 				| identi '=' consta {parameterNumber++; checkParameterType();}
 				| identi '=' identi {parameterNumber++; checkParameterType();}
 				| consta {parameterNumber++; checkParameterType();}
@@ -799,10 +837,13 @@ functionDeclaration : declaration2 '(' ')' ';'
 					{
 						globalScope = 1;
 					}
+					pop(stack1); currentScope = stack1->array[stack1->top]+1;
+					if (stack1->top == -1) currentScope = 1;
 					}
 					;				   
 
-startParenthesis : '(' {push(stack,newScope++); globalScope = newScope ; }
+startParenthesis : '(' {push(stack,newScope++); globalScope = newScope;
+						push(stack1,currentScope++);}
 				 ;
 
 identi3 : ID {
@@ -819,21 +860,21 @@ identi3 : ID {
 				}
 				alc2[i]='\0';
 				if(checkDeclaration1(buffer)==0)
-								{
-									if(strcmp(getAttribute(buffer),"function")!=0)
-									{
-										printf(ANSI_COLOR_RED "\nERROR: %s is not a function\n" ANSI_COLOR_RESET, buffer);
-									}
-									else
-									{	
-										printf("\nArgument Passed : %s\n", buffer);
-									}
-								}
-								else
-								{
-									printf(ANSI_COLOR_RED "\nERROR: Function used is not declared\n" ANSI_COLOR_RESET);
-								}
-							};	
+				{
+					if(strcmp(getAttribute(buffer),"function")!=0)
+					{
+						printf(ANSI_COLOR_RED "\nERROR: %s is not a function\n" ANSI_COLOR_RESET, buffer);
+					}
+					else
+					{	
+					}
+				}
+				else
+				{
+					printf(ANSI_COLOR_RED "\nERROR: Function used is not declared\n" ANSI_COLOR_RESET);
+					flag2=1;
+				}
+			};	
 
 identi : ID {
 				int len = strlen(yylval.sym); 
@@ -849,11 +890,9 @@ identi : ID {
 			}
 			if(checkDeclaration1(buffer)==0)
 				{
-					printf("\nArgument Passed : %s\n", buffer);
 				}
 			else
 			{
-				printf("\n-----%s-------\n", buffer);
 				printf(ANSI_COLOR_RED "\nERROR: Variable used is not declared\n" ANSI_COLOR_RESET);
 			}
 		};						
@@ -870,7 +909,6 @@ identi1 : ID {
 	
 				if(checkDeclaration(buffer))
 				{
-					printf("\nArgument Passed 2: %s\n", yylval.sym);
 					addToTable(0,buffer,"identifier", alc);
 				}
 				else

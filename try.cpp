@@ -1,6 +1,7 @@
-#include <bits/stdc++.h>
+#include <io>
 using namespace std;
-int a;
+int foo() { }
 int main() {
-	char a;
+	int foo = 1111111;
+	5=4;
 }

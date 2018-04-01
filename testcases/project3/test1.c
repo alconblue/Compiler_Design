@@ -3,27 +3,28 @@
 
 int print(int x, int y)
 {
-	float i, j;
 
-	while(i<x)
+	int i=0; 
+	float j=0;
+	while(i)
 	{
 		j=0;
-		while(j<y)
+		while(1)
 		{
+			int c;
 			if(i==j)
 			{
-				printf("equal");
+
 			}
 			
 			j++;
 		}
-		printf("\n");
 		i++;
 	}
 }
 
 void main()
 {
-	//print(5,10);
-	//return 0;
+	int i,j;
+	print(i,j);
 }

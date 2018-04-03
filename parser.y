@@ -409,6 +409,7 @@
 		}
 		else
 		{
+			// for assignment operators like +=,-=,...
 		 	printf(ANSI_COLOR_RED "%s\t%c\t%s\t%c\t%s\n" ANSI_COLOR_RESET,icgstack[top_icg-2],icgstack[top_icg-1][1],icgstack[top_icg-2],icgstack[top_icg-1][0],icgstack[top_icg]);
 		 	top_icg-=3;			
 		}
@@ -438,7 +439,7 @@
 		int y;
 		y=label[ltop--];
 		printf(ANSI_COLOR_RED "$L%d: \n" ANSI_COLOR_RESET,y);
-		ltop--;
+		top_icg--;
 	}
 
 	void display()
@@ -628,6 +629,7 @@ declarationList : dataType identi1 ',' identifierList
 				| dataType identi1
 				| dataType identi1 '=' consta
 				| dataType identi1 '=' identi
+			    | dataType identi1 '=' functionCall1				
 				;				
 
 identifierList : identifierList ',' identi1
@@ -645,13 +647,13 @@ ifExpression : IF '(' expression ')'{if_label1();} ;
 
 ifStatement : ifExpression ifAndElseMatched1 {if_label2();} ;
 
-ifAndElseMatched : ifStatement ELSE ifAndElseMatched1 {if_label3();} 
+ifAndElseMatched : ifStatement ELSE ifAndElseMatched1 {if_label3();}
 				 ; 
-ifAndElseMatched1 : ifStatement ELSE ifAndElseMatched1 {if_label3();} 
-				  | statement1 {if_label3();} 
+ifAndElseMatched1 : ifStatement ELSE ifAndElseMatched1 {if_label3();}
+				  | statement1  
 				  ;		 
-ifAndElseUnmatched : ifStatement ELSE ifAndElseUnmatched {if_label3();} 
-				   | ifExpression statement1 {if_label2();} 
+ifAndElseUnmatched : ifStatement ELSE ifAndElseUnmatched {if_label3();}
+				   | ifExpression statement1 
 				   ;		   				 
 
 	/*While loop*/
@@ -684,8 +686,9 @@ primary_expression
 					strcpy(icg_string,buffer); push_icg();
 				}
 			}
-	| consta {if(rhs==0) {printf(ANSI_COLOR_RED "\nERROR: Lvalue required to be identifier\n" ANSI_COLOR_RESET);} else {push_icg();}}
+	| consta {if(rhs==0) {printf(ANSI_COLOR_RED "\nERROR: Lvalue required to be identifier\n" ANSI_COLOR_RESET);} else {strcpy(icg_string,yytext); push_icg();}}
 	| '(' expression ')'
+	| functionCall1
 	;
 postfix_expression
 	: primary_expression
@@ -718,20 +721,40 @@ argument_expression_list
 					   
 unary_expression
 	: postfix_expression
-	| INC unary_expression
-	| DEC unary_expression
-	| unary_operator cast_expression
+	| INC unary_expression {
+		 	sprintf(temp,"$t%d",i_icg);
+		  	printf("%s\t=\t%s\t%s\t%s\n",temp,icgstack[top_icg],"+","1");
+		 	strcpy(icgstack[top_icg+1],temp);
+		 	i_icg++;
+		 	printf("%s\t=\t%s\n",icgstack[top_icg],icgstack[top_icg+1]);
+		 	top_icg-=3;
+	}
+	| DEC unary_expression {
+		 	sprintf(temp,"$t%d",i_icg);
+		  	printf("%s\t=\t%s\t%s\t%s\n",temp,icgstack[top_icg],"-","1");
+		 	strcpy(icgstack[top_icg+1],temp);
+		 	i_icg++;
+		 	printf("%s\t=\t%s\n",icgstack[top_icg],icgstack[top_icg+1]);
+		 	top_icg-=3;
+	}
+	| unary_operator cast_expression {
+		 	sprintf(temp,"$t%d",i_icg);
+		  	printf(ANSI_COLOR_RED "%s\t=\t%s\t%s\n" ANSI_COLOR_RESET,temp,icgstack[top_icg-1],icgstack[top_icg]);
+		  	top_icg-=1;
+		 	strcpy(icgstack[top_icg],temp);
+		 	i_icg++;
+	}
 	| SIZEOF unary_expression
 	| SIZEOF '(' dataType ')'
 	| SIZEOF '(' VOID ')'
 	;
 unary_operator
-	: '&'
-	| '*'
-	| '+'
-	| '-'
-	| '~'
-	| '!'
+	: '&' {strcpy(icg_string,yytext); push_icg();}
+	| '*' {strcpy(icg_string,yytext); push_icg();}
+	| '+' {strcpy(icg_string,yytext); push_icg();}
+	| '-' {strcpy(icg_string,yytext); push_icg();}
+	| '~' {strcpy(icg_string,yytext); push_icg();}
+	| '!' {strcpy(icg_string,yytext); push_icg();}
 	;
 cast_expression
 	: unary_expression
@@ -755,10 +778,10 @@ shift_expression
 	;
 relational_expression
 	: shift_expression
-	| relational_expression gt {strcpy(icg_string,yytext); push_icg();} shift_expression {codegen();}
-	| relational_expression lt {strcpy(icg_string,yytext); push_icg();} shift_expression {codegen();}
-	| relational_expression LE {strcpy(icg_string,yytext); push_icg();} shift_expression {codegen();}
-	| relational_expression GE {strcpy(icg_string,yytext); push_icg();} shift_expression {codegen();}
+	| relational_expression gt { rhs=1; strcpy(icg_string,yytext); push_icg();} shift_expression {codegen();}
+	| relational_expression lt { rhs=1; strcpy(icg_string,yytext); push_icg();} shift_expression {codegen();}
+	| relational_expression LE { rhs=1; strcpy(icg_string,yytext); push_icg();} shift_expression {codegen();}
+	| relational_expression GE { rhs=1; strcpy(icg_string,yytext); push_icg();} shift_expression {codegen();}
 	;
 
 gt : '>' {rhs=1;};
@@ -766,8 +789,8 @@ lt : '<' {rhs=1;};
 
 equality_expression
 	: relational_expression
-	| equality_expression EQ {strcpy(icg_string,yytext); push_icg();}  relational_expression {codegen();}
-	| equality_expression NE {strcpy(icg_string,yytext); push_icg();}  relational_expression {codegen();}
+	| equality_expression EQ {rhs=1; strcpy(icg_string,yytext); push_icg();}  relational_expression {codegen();}
+	| equality_expression NE {rhs=1; strcpy(icg_string,yytext); push_icg();}  relational_expression {codegen();}
 	;
 and_expression
 	: equality_expression
@@ -878,6 +901,11 @@ external_declaration
 	| declarationStatement
 	| HEADERFILE
 	;
+
+functionCall1 : identi3 '(' ')' 
+
+			| identi3 '(' parameters ')' {if(flag2==0){ flag=1; checkParameterType(); flag=0; parameterNumber=0;}}
+			;
 
 functionCall : identi3 '(' ')' ';'
 

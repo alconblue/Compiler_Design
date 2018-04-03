@@ -42,6 +42,9 @@
 	int rhs=0;
 	int whileStart=0;
 	int label[200];
+	int ret[200];
+	int rnum=0;
+	int rtop=0;
 	int lnum=0;
 	int ltop=0;
 	int top_icg=0;
@@ -464,6 +467,22 @@
 		top_icg--;
 	}
 
+	func_after()
+	{
+		printf(ANSI_COLOR_RED "label%d:\n" ANSI_COLOR_RESET, label[ltop--]);
+	}
+
+	func_return() 
+	{
+		printf(ANSI_COLOR_RED "goto $ret_addr" ANSI_COLOR_RESET);
+	}
+
+	func_return_v(char *ret_val)
+	{
+		printf(ANSI_COLOR_RED "$ret_value = %s\n" ANSI_COLOR_RESET, ret_val);
+		printf(ANSI_COLOR_RED "goto $ret_addr\n" ANSI_COLOR_RESET);
+	}
+
 	void display()
 	{
 		int k=0;
@@ -554,6 +573,7 @@ declaration : dataType ID { int len = strlen(yylval.sym);
 										procFlag = 1;
 										addToTable(0,buffer,"function", alc);
 										procFlag = -1;
+										printf(ANSI_COLOR_RED "%s:\n" ANSI_COLOR_RESET, buffer);
 									}
 									else
 									{
@@ -573,6 +593,7 @@ declaration : dataType ID { int len = strlen(yylval.sym);
 								procFlag = 1;
 								addToTable(0,yylval.sym,"function", alc);
 								procFlag = -1;
+								printf(ANSI_COLOR_RED "%s:\n" ANSI_COLOR_RESET, alc2);
 							}
 							else
 							{
@@ -839,8 +860,11 @@ assignment_operator
 jumpStatement : CONTINUE ';'
 			  | BREAK ';'
 			  | RETURN ';' {
-			  if (alc1!=NULL && strcmp(alc1,"void")!=0) printf(ANSI_COLOR_RED "\nERROR: Function type is %s return void found\n" ANSI_COLOR_RESET, alc1);}
-			  | RETURN ID ';' {
+			  if (alc1!=NULL && strcmp(alc1,"void")!=0) printf(ANSI_COLOR_RED "\nERROR: Function type is %s return void found\n" ANSI_COLOR_RESET, alc1);
+			  else
+			  func_return();
+			  }
+			  | RETURN ID {
 			  	int len = strlen(yylval.sym); 
 				char *buffer=(char *)malloc(len);
 				int i;
@@ -854,12 +878,15 @@ jumpStatement : CONTINUE ';'
 					printf(ANSI_COLOR_RED "\nERROR: Function with return type int returning void\n" ANSI_COLOR_RESET);
 				else if (setDatatype==0 && strcmp(alc1, "void"))
 					printf(ANSI_COLOR_RED "\nERROR: Function with return type void returning int\n" ANSI_COLOR_RESET);
-				}
-				| RETURN consta ';' {
+				else
+					func_return_v(yytext);
+				} ';'
+				| RETURN consta {
 				if (strcmp(alc1, "void")==0)
 					printf(ANSI_COLOR_RED "\nERROR: Function with return type void returning value\n" ANSI_COLOR_RESET);
-				}
-			  | RETURN expression ';'
+				else
+					func_return_v(yytext);	
+				} ';'
 			  ;
 /*			jumpStatementError : CONTINUE 
 			       | BREAK 
@@ -902,7 +929,7 @@ external_declaration
 	| HEADERFILE
 	;
 
-functionCall : identi3 '(' ')' ';'
+functionCall : identi3 '(' ')' ';' {func_after();}
 
 			| identi3 '(' parameters ')' ';' {if(flag2==0){ flag=1; checkParameterType(); flag=0; parameterNumber=0;}}
 			;
@@ -921,7 +948,7 @@ parameters : parameters ',' identi {parameterNumber++; checkParameterType();}
 				| stri {parameterNumber++; checkParameterType();}
 				;			
 
-functionDefinition : declaration '(' ')' compoundStatement
+functionDefinition : declaration  '(' ')' compoundStatement
 				   | declaration startParenthesis argumentList ')' '{' statements endCompound {setDatatype = 0;}
 				   | declaration startParenthesis argumentList ')' '{' endCompound
 				   ;		
@@ -960,9 +987,12 @@ identi3 : ID {
 					if(strcmp(getAttribute(buffer),"function")!=0)
 					{
 						printf(ANSI_COLOR_RED "\nERROR: %s is not a function\n" ANSI_COLOR_RESET, buffer);
+
 					}
 					else
-					{	
+					{
+						printf(ANSI_COLOR_RED "$ret_addr = label%d\ngoto %s\n" ANSI_COLOR_RESET, ++lnum, buffer);
+						label[++ltop]=lnum;
 					}
 				}
 				else

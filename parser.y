@@ -23,6 +23,7 @@
 	#include <stdlib.h>
 	#include <string.h>
 	#include <limits.h>
+	#include"lex.yy.c"
 
 	int size=20;
 	char *alc=0;
@@ -40,6 +41,17 @@
 	int currentScope=1;
 	int rhs=0;
 	int whileStart=0;
+	int label[200];
+	int lnum=0;
+	int ltop=0;
+	int top_icg=0;
+	char temp[2]="t";
+	int i_icg=0;
+	char f1[1000];
+	char *icg_string;
+	int icg_flag=0;
+	char icgstack[1000][50];
+
 	#define ANSI_COLOR_RED     "\x1b[31m"
 	#define ANSI_COLOR_RESET   "\x1b[0m"
 
@@ -82,6 +94,11 @@
 	    return stack->array[stack->top--];
 	}
 
+	void push_icg()
+	{
+		strcpy(icgstack[++top_icg],icg_string);
+	}
+
 	struct symbolTable{
 		int index;
 		char *symbol;
@@ -110,6 +127,7 @@
 	 	stack = createStack(100);
 	 	alc2 = (char*)malloc(sizeof(char)*100);
 	 	alc3 = (char*)malloc(sizeof(char)*100);
+	 	icg_string = (char*)malloc(sizeof(char)*100);
 	 	stack1 = createStack(100);
 		for(;i<size;i++)
 		{
@@ -373,6 +391,56 @@
 		}
 	}
 
+	void codegen()
+	{
+	 	sprintf(temp,"$t%d",i_icg);
+	  	printf(ANSI_COLOR_RED "%s\t=\t%s\t%s\t%s\n" ANSI_COLOR_RESET,temp,icgstack[top_icg-2],icgstack[top_icg-1],icgstack[top_icg]);
+	  	top_icg-=2;
+	 	strcpy(icgstack[top_icg],temp);
+	 	i_icg++;
+	}
+
+	void codegen_assign()
+	{
+		if(icg_flag==0)
+		{
+		 	printf(ANSI_COLOR_RED "%s\t%s\t%s\n" ANSI_COLOR_RESET,icgstack[top_icg-2],icgstack[top_icg-1],icgstack[top_icg]);
+		 	top_icg-=3;
+		}
+		else
+		{
+		 	printf(ANSI_COLOR_RED "%s\t%c\t%s\t%c\t%s\n" ANSI_COLOR_RESET,icgstack[top_icg-2],icgstack[top_icg-1][1],icgstack[top_icg-2],icgstack[top_icg-1][0],icgstack[top_icg]);
+		 	top_icg-=3;			
+		}
+		icg_flag=0;
+	}
+
+	void if_label1()
+	{
+		lnum++;
+		printf(ANSI_COLOR_RED "\tif( not %s)" ANSI_COLOR_RESET,icgstack[top_icg]);
+	 	printf(ANSI_COLOR_RED "\tgoto $L%d\n" ANSI_COLOR_RESET,lnum);
+	 	label[++ltop]=lnum;
+	}
+
+	void if_label2()
+	{
+		int x;
+		lnum++;
+		x=label[ltop--]; 
+		printf(ANSI_COLOR_RED "\t\tgoto $L%d\n" ANSI_COLOR_RESET,lnum);
+		printf(ANSI_COLOR_RED "$L%d: \n" ANSI_COLOR_RESET,x); 
+		label[++ltop]=lnum;
+	}
+
+	void if_label3()
+	{
+		int y;
+		y=label[ltop--];
+		printf(ANSI_COLOR_RED "$L%d: \n" ANSI_COLOR_RESET,y);
+		ltop--;
+	}
+
 	void display()
 	{
 		int k=0;
@@ -570,44 +638,27 @@ identifierList : identifierList ',' identi1
 				| identi1 '=' identi
 				;
 
-/*declarationStatementError : declaration { printf("Semicolon missing after statement %s\n",$1);}
-					 	  | declarationAndAssignment { printf("Semicolon missing after statement %s\n",$1);}
-					 	  ;*/
-
-
-
 	/*If and else statements.*/
 	/*The dangling else problem is taken care by having two types of if and else statements: Matched and unmatched statements*/
-/*ifAndElseStatement : ifAndElseMatched
-				   | ifAndElseUnmatched
-				   ;*/
-ifAndElseMatched : IF '(' expression ')' ifAndElseMatched1 ELSE ifAndElseMatched1 
-				 ;
-ifAndElseMatched1 : IF '(' expression ')' ifAndElseMatched1 ELSE ifAndElseMatched1 
-				  | statement1
+
+ifExpression : IF '(' expression ')'{if_label1();} ;
+
+ifStatement : ifExpression ifAndElseMatched1 {if_label2();} ;
+
+ifAndElseMatched : ifStatement ELSE ifAndElseMatched1 {if_label3();} 
+				 ; 
+ifAndElseMatched1 : ifStatement ELSE ifAndElseMatched1 {if_label3();} 
+				  | statement1 {if_label3();} 
 				  ;		 
-ifAndElseUnmatched : IF '(' expression ')' ifAndElseMatched1 ELSE ifAndElseUnmatched
-				   | IF	'(' expression ')' statement1
+ifAndElseUnmatched : ifStatement ELSE ifAndElseUnmatched {if_label3();} 
+				   | ifExpression statement1 {if_label2();} 
 				   ;		   				 
-/*ifAndElseStatementError : IF '(' expression ifAndElseMatched ELSE ifAndElseMatched 
-						| IF expression ')' ifAndElseMatched ELSE ifAndElseMatched 
-						| IF expression ')' ifAndElseMatched ELSE ifAndElseUnmatched
-						| IF '(' expression ifAndElseMatched ELSE ifAndElseUnmatched
-						| IF expression ')' statement
-						| IF '(' expression statement
-						;*/
-
-
 
 	/*While loop*/
 whileLoopStatement : WHILE whileParanthesisStart expression whileParanthesisEnd statement
 				   		;
 whileParanthesisStart : '(' {whileStart=1;};
 whileParanthesisEnd : ')' {whileStart=0;};				   		
-/*whileLoopStatementError : WHILE expression ')' statement {addToTable(0,"while","keyword");}
-						| WHILE '(' expression statement {addToTable(0,"while","keyword");}
-						;*/
-
 
 	/*Expressions are statements with operators. The expressions are defined taking care of the precedence of operators*/
 expressionStatement : expression ';'
@@ -616,7 +667,7 @@ expression : assignment_expression
 		   | expression ',' assignment_expression
 		   ;
 primary_expression
-	: identi {int len = strlen(yylval.sym); 
+	: identi {  int len = strlen(yylval.sym); 
 				char *buffer=(char *)malloc(len);
 				int i;
 				for (i=0;i<len;i++)
@@ -624,8 +675,16 @@ primary_expression
 				if ((yylval.sym[i]>='a' && yylval.sym[i]<='z') || (yylval.sym[i]>='A' && yylval.sym[i]<='Z') || (yylval.sym[i]>='0' && yylval.sym[i]<='9') || (yylval.sym[i]=='_'))
 					buffer[i] = yylval.sym[i];
 				}
-				if(whileStart==1 && getDatatype(buffer)!=1) printf(ANSI_COLOR_RED "\nERROR: Condition of while has to be int\n" ANSI_COLOR_RESET);}
-	| consta {if(rhs==0) printf(ANSI_COLOR_RED "\nERROR: Lvalue required to be identifier\n" ANSI_COLOR_RESET);}
+				if(whileStart==1 && getDatatype(buffer)!=1) 
+				{
+					printf(ANSI_COLOR_RED "\nERROR: Condition of while has to be int\n" ANSI_COLOR_RESET);
+				}
+				else
+				{
+					strcpy(icg_string,buffer); push_icg();
+				}
+			}
+	| consta {if(rhs==0) {printf(ANSI_COLOR_RED "\nERROR: Lvalue required to be identifier\n" ANSI_COLOR_RESET);} else {push_icg();}}
 	| '(' expression ')'
 	;
 postfix_expression
@@ -634,8 +693,22 @@ postfix_expression
 	| postfix_expression '(' ')'
 	| postfix_expression '(' argument_expression_list ')'
 	| postfix_expression '.' identi
-	| postfix_expression INC
-	| postfix_expression DEC
+	| postfix_expression INC {
+		 	sprintf(temp,"$t%d",i_icg);
+		  	printf("%s\t=\t%s\t%s\t%s\n",temp,icgstack[top_icg],"+","1");
+		 	strcpy(icgstack[top_icg+1],temp);
+		 	i_icg++;
+		 	printf("%s\t=\t%s\n",icgstack[top_icg],icgstack[top_icg+1]);
+		 	top_icg-=3;
+	}
+	| postfix_expression DEC {
+		 	sprintf(temp,"$t%d",i_icg);
+		  	printf("%s\t=\t%s\t%s\t%s\n",temp,icgstack[top_icg],"-","1");
+		 	strcpy(icgstack[top_icg+1],temp);
+		 	i_icg++;
+		 	printf("%s\t=\t%s\n",icgstack[top_icg],icgstack[top_icg+1]);
+		 	top_icg-=3;
+	}
 	;
 
 argument_expression_list
@@ -666,26 +739,26 @@ cast_expression
 	;
 multiplicative_expression
 	: cast_expression
-	| multiplicative_expression '*' cast_expression
-	| multiplicative_expression '/' cast_expression
-	| multiplicative_expression '%' cast_expression
+	| multiplicative_expression '*' {strcpy(icg_string,yytext); push_icg();} cast_expression {codegen();}
+	| multiplicative_expression '/' {strcpy(icg_string,yytext); push_icg();} cast_expression {codegen();}
+	| multiplicative_expression '%' {strcpy(icg_string,yytext); push_icg();} cast_expression {codegen();}
 	;
 additive_expression
 	: multiplicative_expression
-	| additive_expression '+' multiplicative_expression
-	| additive_expression '-' multiplicative_expression
+	| additive_expression '+' {strcpy(icg_string,yytext); push_icg();} multiplicative_expression {codegen();}
+	| additive_expression '-' {strcpy(icg_string,yytext); push_icg();} multiplicative_expression {codegen();}
 	;
 shift_expression
 	: additive_expression
-	| shift_expression LEFT additive_expression
-	| shift_expression RIGHT additive_expression
+	| shift_expression LEFT {strcpy(icg_string,yytext); push_icg();}  additive_expression {codegen();}
+	| shift_expression RIGHT {strcpy(icg_string,yytext); push_icg();}  additive_expression {codegen();}
 	;
 relational_expression
 	: shift_expression
-	| relational_expression gt shift_expression
-	| relational_expression lt shift_expression
-	| relational_expression LE shift_expression
-	| relational_expression GE shift_expression
+	| relational_expression gt {strcpy(icg_string,yytext); push_icg();} shift_expression {codegen();}
+	| relational_expression lt {strcpy(icg_string,yytext); push_icg();} shift_expression {codegen();}
+	| relational_expression LE {strcpy(icg_string,yytext); push_icg();} shift_expression {codegen();}
+	| relational_expression GE {strcpy(icg_string,yytext); push_icg();} shift_expression {codegen();}
 	;
 
 gt : '>' {rhs=1;};
@@ -693,28 +766,28 @@ lt : '<' {rhs=1;};
 
 equality_expression
 	: relational_expression
-	| equality_expression EQ relational_expression
-	| equality_expression NE relational_expression
+	| equality_expression EQ {strcpy(icg_string,yytext); push_icg();}  relational_expression {codegen();}
+	| equality_expression NE {strcpy(icg_string,yytext); push_icg();}  relational_expression {codegen();}
 	;
 and_expression
 	: equality_expression
-	| and_expression '&' equality_expression
+	| and_expression '&' {strcpy(icg_string,yytext); push_icg();}  equality_expression {codegen();}
 	;
 exclusive_or_expression
 	: and_expression
-	| exclusive_or_expression '^' and_expression
+	| exclusive_or_expression '^' {strcpy(icg_string,yytext); push_icg();}  and_expression {codegen();}
 	;
 inclusive_or_expression
 	: exclusive_or_expression
-	| inclusive_or_expression '|' exclusive_or_expression
+	| inclusive_or_expression '|' {strcpy(icg_string,yytext); push_icg();} exclusive_or_expression {codegen();}
 	;
 logical_and_expression
 	: inclusive_or_expression
-	| logical_and_expression AND inclusive_or_expression
+	| logical_and_expression AND {strcpy(icg_string,yytext); push_icg();} inclusive_or_expression {codegen();}
 	;
 logical_or_expression
 	: logical_and_expression
-	| logical_or_expression OR logical_and_expression
+	| logical_or_expression OR {strcpy(icg_string,yytext); push_icg();} logical_and_expression {codegen();}
 	;
 conditional_expression
 	: logical_or_expression
@@ -722,20 +795,20 @@ conditional_expression
 	;
 assignment_expression
 	: conditional_expression
-	| unary_expression assignment_operator assignment_expression
+	| unary_expression assignment_operator {strcpy(icg_string,yytext); push_icg();}  assignment_expression  {codegen_assign();}
 	;
 assignment_operator
 	: '=' {rhs=1;}
-	| MUL_ASSIGN {rhs=1;}
-	| DIV_ASSIGN {rhs=1;} 
-	| MOD_ASSIGN {rhs=1;}
-	| ADD_ASSIGN {rhs=1;}
-	| SUB_ASSIGN {rhs=1;}
-	| LEFT_ASSIGN {rhs=1;}
-	| RIGHT_ASSIGN {rhs=1;}
-	| AND_ASSIGN {rhs=1;}
-	| XOR_ASSIGN {rhs=1;}
-	| OR_ASSIGN {rhs=1;}
+	| MUL_ASSIGN {rhs=1; icg_flag=1;}
+	| DIV_ASSIGN {rhs=1; icg_flag=1;}
+	| MOD_ASSIGN {rhs=1; icg_flag=1;}
+	| ADD_ASSIGN {rhs=1; icg_flag=1;}
+	| SUB_ASSIGN {rhs=1; icg_flag=1;}
+	| LEFT_ASSIGN {rhs=1; icg_flag=1;}
+	| RIGHT_ASSIGN {rhs=1; icg_flag=1;}
+	| AND_ASSIGN {rhs=1; icg_flag=1;}
+	| XOR_ASSIGN {rhs=1; icg_flag=1;}
+	| OR_ASSIGN {rhs=1; icg_flag=1;}
 	;
 
 
@@ -926,6 +999,7 @@ void : VOID {alc="void";};
 
 #include<stdio.h>
 extern int lineNo;
+//extern char* yytext;
 int main()
 {
 	init();

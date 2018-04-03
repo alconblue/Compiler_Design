@@ -42,6 +42,9 @@
 	int rhs=0;
 	int whileStart=0;
 	int label[200];
+	int ret[200];
+	int rnum=0;
+	int rtop=0;
 	int lnum=0;
 	int ltop=0;
 	int top_icg=0;
@@ -466,6 +469,22 @@
 		top_icg--;
 	}
 
+	func_after()
+	{
+		printf(ANSI_COLOR_RED "label%d:\n" ANSI_COLOR_RESET, label[ltop--]);
+	}
+
+	func_return() 
+	{
+		printf(ANSI_COLOR_RED "goto $ret_addr" ANSI_COLOR_RESET);
+	}
+
+	func_return_v(char *ret_val)
+	{
+		printf(ANSI_COLOR_RED "$ret_value = %s\n" ANSI_COLOR_RESET, ret_val);
+		printf(ANSI_COLOR_RED "goto $ret_addr\n" ANSI_COLOR_RESET);
+	}
+
 	void display()
 	{
 		int k=0;
@@ -556,6 +575,7 @@ declaration : dataType ID { int len = strlen(yylval.sym);
 										procFlag = 1;
 										addToTable(0,buffer,"function", alc);
 										procFlag = -1;
+										printf(ANSI_COLOR_RED "%s:\n" ANSI_COLOR_RESET, buffer);
 									}
 									else
 									{
@@ -575,6 +595,7 @@ declaration : dataType ID { int len = strlen(yylval.sym);
 								procFlag = 1;
 								addToTable(0,yylval.sym,"function", alc);
 								procFlag = -1;
+								printf(ANSI_COLOR_RED "%s:\n" ANSI_COLOR_RESET, alc2);
 							}
 							else
 							{
@@ -651,9 +672,9 @@ argumentList : argumentList ',' completeDeclaration
 
 declarationList : dataType identi1 ',' identifierList
 				| dataType identi1
-				| dataType identi1 '=' {strcpy(icg_string,yytext); push_icg();} consta {codegen_assign();}
-			    | dataType identi1 '=' {strcpy(icg_string,yytext); push_icg();} expression {codegen_assign();}
-			    | dataType identi1 '=' {strcpy(icg_string,yytext); push_icg();} functionCall1 {codegen_assign();}
+				| dataType identi1 '=' {rhs=1; strcpy(icg_string,"="); push_icg();} consta {strcpy(icg_string,yytext); push_icg(); codegen_assign();}
+			    | dataType identi1 '=' {rhs=1; strcpy(icg_string,"="); push_icg();} expression {codegen_assign();}
+			    | dataType identi1 '=' {rhs=1; strcpy(icg_string,"="); push_icg();} functionCall1 {codegen_assign();}
 				;				
 
 identifierList : identifierList ',' identi1
@@ -663,6 +684,8 @@ identifierList : identifierList ',' identi1
 				| identi1 '=' consta
 				| identi1 '=' identi
 				;
+
+
 
 	/*If and else statements.*/
 	/*The dangling else problem is taken care by having two types of if and else statements: Matched and unmatched statements*/
@@ -680,11 +703,15 @@ ifAndElseUnmatched : ifStatement ELSE ifAndElseUnmatched {if_label3();}
 				   | ifExpression statement1 
 				   ;		   				 
 
+
+
 	/*While loop*/
 whileLoopStatement : {while_start();} WHILE whileParanthesisStart expression whileParanthesisEnd {while_rep();} statement {while_end();}
 				   		;
 whileParanthesisStart : '(' {whileStart=1;};
 whileParanthesisEnd : ')' {whileStart=0;};				   		
+
+
 
 	/*Expressions are statements with operators. The expressions are defined taking care of the precedence of operators*/
 expressionStatement : expression ';'
@@ -715,22 +742,20 @@ primary_expression
 	;
 postfix_expression
 	: primary_expression
-	| postfix_expression '[' expression ']'
-	| postfix_expression '.' identi
 	| postfix_expression INC {
 		 	sprintf(temp,"$t%d",i_icg);
-		  	printf("%s\t=\t%s\t%s\t%s\n",temp,icgstack[top_icg],"+","1");
+		  	printf(ANSI_COLOR_RED"%s\t=\t%s\t%s\t%s\n"ANSI_COLOR_RESET,temp,icgstack[top_icg],"+","1");
 		 	strcpy(icgstack[top_icg+1],temp);
 		 	i_icg++;
-		 	printf("%s\t=\t%s\n",icgstack[top_icg],icgstack[top_icg+1]);
+		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,icgstack[top_icg],icgstack[top_icg+1]);
 		 	top_icg-=3;
 	}
 	| postfix_expression DEC {
 		 	sprintf(temp,"$t%d",i_icg);
-		  	printf("%s\t=\t%s\t%s\t%s\n",temp,icgstack[top_icg],"-","1");
+		  	printf(ANSI_COLOR_RED"%s\t=\t%s\t%s\t%s\n"ANSI_COLOR_RESET,temp,icgstack[top_icg],"-","1");
 		 	strcpy(icgstack[top_icg+1],temp);
 		 	i_icg++;
-		 	printf("%s\t=\t%s\n",icgstack[top_icg],icgstack[top_icg+1]);
+		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,icgstack[top_icg],icgstack[top_icg+1]);
 		 	top_icg-=3;
 	}
 	;
@@ -740,18 +765,18 @@ unary_expression
 	: postfix_expression
 	| INC unary_expression {
 		 	sprintf(temp,"$t%d",i_icg);
-		  	printf("%s\t=\t%s\t%s\t%s\n",temp,icgstack[top_icg],"+","1");
+		  	printf(ANSI_COLOR_RED"%s\t=\t%s\t%s\t%s\n"ANSI_COLOR_RESET,temp,icgstack[top_icg],"+","1");
 		 	strcpy(icgstack[top_icg+1],temp);
 		 	i_icg++;
-		 	printf("%s\t=\t%s\n",icgstack[top_icg],icgstack[top_icg+1]);
+		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,icgstack[top_icg],icgstack[top_icg+1]);
 		 	top_icg-=3;
 	}
 	| DEC unary_expression {
 		 	sprintf(temp,"$t%d",i_icg);
-		  	printf("%s\t=\t%s\t%s\t%s\n",temp,icgstack[top_icg],"-","1");
+		  	printf(ANSI_COLOR_RED"%s\t=\t%s\t%s\t%s\n"ANSI_COLOR_RESET,temp,icgstack[top_icg],"-","1");
 		 	strcpy(icgstack[top_icg+1],temp);
 		 	i_icg++;
-		 	printf("%s\t=\t%s\n",icgstack[top_icg],icgstack[top_icg+1]);
+		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,icgstack[top_icg],icgstack[top_icg+1]);
 		 	top_icg-=3;
 	}
 	| unary_operator cast_expression {
@@ -857,8 +882,11 @@ assignment_operator
 jumpStatement : CONTINUE ';'
 			  | BREAK ';'
 			  | RETURN ';' {
-			  if (alc1!=NULL && strcmp(alc1,"void")!=0) printf(ANSI_COLOR_RED "\nERROR: Function type is %s return void found\n" ANSI_COLOR_RESET, alc1);}
-			  | RETURN ID ';' {
+			  if (alc1!=NULL && strcmp(alc1,"void")!=0) printf(ANSI_COLOR_RED "\nERROR: Function type is %s return void found\n" ANSI_COLOR_RESET, alc1);
+			  else
+			  func_return();
+			  }
+			  | RETURN ID {
 			  	int len = strlen(yylval.sym); 
 				char *buffer=(char *)malloc(len);
 				int i;
@@ -872,18 +900,17 @@ jumpStatement : CONTINUE ';'
 					printf(ANSI_COLOR_RED "\nERROR: Function with return type int returning void\n" ANSI_COLOR_RESET);
 				else if (setDatatype==0 && strcmp(alc1, "void"))
 					printf(ANSI_COLOR_RED "\nERROR: Function with return type void returning int\n" ANSI_COLOR_RESET);
-				}
-				| RETURN consta ';' {
+				else
+					func_return_v(yytext);
+				} ';'
+				| RETURN consta {
 				if (strcmp(alc1, "void")==0)
 					printf(ANSI_COLOR_RED "\nERROR: Function with return type void returning value\n" ANSI_COLOR_RESET);
-				}
-			  | RETURN expression ';'
+				else
+					func_return_v(yytext);	
+				} ';'
 			  ;
-/*			jumpStatementError : CONTINUE 
-			       | BREAK 
-			       | RETURN 
-			       ;*/		  
-
+ 
 
 	/*Compound statements are the statements enclosed within the curly braces*/
 compoundStatement : startCompound statements endCompound
@@ -901,13 +928,6 @@ endCompound : '}' {pop(stack); globalScope =  stack->array[stack->top]+1;
 					}
 			;
 
-/*compoundStatementError : '{'
-					   | '}'
-					   | '{' statements 
-					   | statements '}'
-					   ;*/
-
-
 
 startSymbol
 	: external_declaration
@@ -920,14 +940,15 @@ external_declaration
 	| HEADERFILE
 	;
 
-functionCall1 : identi3 '(' ')' 
 
-			| identi3 '(' parameters ')' {if(flag2==0){ flag=1; checkParameterType(); flag=0; parameterNumber=0;}}
+
+functionCall1 : identi3 '(' ')' {func_after();}
+
+			| identi3 '(' parameters ')' {if(flag2==0){ flag=1; checkParameterType(); flag=0; parameterNumber=0;} func_after();}
 			;
 
-functionCall : identi3 '(' ')' ';'
-
-			| identi3 '(' parameters ')' ';' {if(flag2==0){ flag=1; checkParameterType(); flag=0; parameterNumber=0;}}
+functionCall : identi3 '(' ')' ';' {func_after();}
+			| identi3 '(' parameters ')' ';' {if(flag2==0){ flag=1; checkParameterType(); flag=0; parameterNumber=0;} func_after();}
 			;
 
 parameters : parameters ',' identi {parameterNumber++; checkParameterType();}
@@ -944,7 +965,7 @@ parameters : parameters ',' identi {parameterNumber++; checkParameterType();}
 				| stri {parameterNumber++; checkParameterType();}
 				;			
 
-functionDefinition : declaration '(' ')' compoundStatement
+functionDefinition : declaration  '(' ')' compoundStatement
 				   | declaration startParenthesis argumentList ')' '{' statements endCompound {setDatatype = 0;}
 				   | declaration startParenthesis argumentList ')' '{' endCompound
 				   ;		
@@ -983,9 +1004,12 @@ identi3 : ID {
 					if(strcmp(getAttribute(buffer),"function")!=0)
 					{
 						printf(ANSI_COLOR_RED "\nERROR: %s is not a function\n" ANSI_COLOR_RESET, buffer);
+
 					}
 					else
-					{	
+					{
+						printf(ANSI_COLOR_RED "$ret_addr = label%d\ngoto %s\n" ANSI_COLOR_RESET, ++lnum, buffer);
+						label[++ltop]=lnum;
 					}
 				}
 				else

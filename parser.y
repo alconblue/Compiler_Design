@@ -442,6 +442,29 @@
 		top_icg--;
 	}
 
+	while_start()
+	{
+		lnum++;
+		label[++ltop]=lnum;
+		printf(ANSI_COLOR_RED "$L%d:\n" ANSI_COLOR_RESET,lnum);
+	}
+	while_rep()
+	{
+		lnum++;
+	 	printf(ANSI_COLOR_RED "if( not %s)" ANSI_COLOR_RESET,icgstack[top_icg]);
+	 	printf(ANSI_COLOR_RED "\tgoto $L%d\n" ANSI_COLOR_RESET,lnum);
+	 	label[++ltop]=lnum;
+	}
+	while_end()
+	{
+		int x,y;
+		y=label[ltop--];
+		x=label[ltop--];
+		printf(ANSI_COLOR_RED "\t\tgoto $L%d\n" ANSI_COLOR_RESET,x);
+		printf(ANSI_COLOR_RED "$L%d: \n" ANSI_COLOR_RESET,y);
+		top_icg--;
+	}
+
 	void display()
 	{
 		int k=0;
@@ -643,7 +666,7 @@ identifierList : identifierList ',' identi1
 	/*If and else statements.*/
 	/*The dangling else problem is taken care by having two types of if and else statements: Matched and unmatched statements*/
 
-ifExpression : IF '(' expression ')'{if_label1();} ;
+ifExpression : IF '(' expression ')' {if_label1();} ;
 
 ifStatement : ifExpression ifAndElseMatched1 {if_label2();} ;
 
@@ -657,7 +680,7 @@ ifAndElseUnmatched : ifStatement ELSE ifAndElseUnmatched {if_label3();}
 				   ;		   				 
 
 	/*While loop*/
-whileLoopStatement : WHILE whileParanthesisStart expression whileParanthesisEnd statement
+whileLoopStatement : {while_start();} WHILE whileParanthesisStart expression whileParanthesisEnd {while_rep();} statement {while_end();}
 				   		;
 whileParanthesisStart : '(' {whileStart=1;};
 whileParanthesisEnd : ')' {whileStart=0;};				   		

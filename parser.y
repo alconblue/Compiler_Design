@@ -96,6 +96,7 @@
 
 	void push_icg()
 	{
+		printf("\nPushing %s\n",icg_string);
 		strcpy(icgstack[++top_icg],icg_string);
 	}
 
@@ -650,9 +651,9 @@ argumentList : argumentList ',' completeDeclaration
 
 declarationList : dataType identi1 ',' identifierList
 				| dataType identi1
-				| dataType identi1 '=' consta
-				| dataType identi1 '=' identi
-			    | dataType identi1 '=' functionCall1				
+				| dataType identi1 '=' {strcpy(icg_string,yytext); push_icg();} consta {codegen_assign();}
+			    | dataType identi1 '=' {strcpy(icg_string,yytext); push_icg();} expression {codegen_assign();}
+			    | dataType identi1 '=' {strcpy(icg_string,yytext); push_icg();} functionCall1 {codegen_assign();}
 				;				
 
 identifierList : identifierList ',' identi1
@@ -711,13 +712,10 @@ primary_expression
 			}
 	| consta {if(rhs==0) {printf(ANSI_COLOR_RED "\nERROR: Lvalue required to be identifier\n" ANSI_COLOR_RESET);} else {strcpy(icg_string,yytext); push_icg();}}
 	| '(' expression ')'
-	| functionCall1
 	;
 postfix_expression
 	: primary_expression
 	| postfix_expression '[' expression ']'
-	| postfix_expression '(' ')'
-	| postfix_expression '(' argument_expression_list ')'
 	| postfix_expression '.' identi
 	| postfix_expression INC {
 		 	sprintf(temp,"$t%d",i_icg);
@@ -737,10 +735,6 @@ postfix_expression
 	}
 	;
 
-argument_expression_list
-	: assignment_expression
-	| argument_expression_list ',' assignment_expression
-	;
 					   
 unary_expression
 	: postfix_expression
@@ -841,7 +835,8 @@ conditional_expression
 	;
 assignment_expression
 	: conditional_expression
-	| unary_expression assignment_operator {strcpy(icg_string,yytext); push_icg();}  assignment_expression  {codegen_assign();}
+	| unary_expression assignment_operator {strcpy(icg_string,yytext); push_icg();} assignment_expression  {codegen_assign();}
+	| unary_expression "=" {strcpy(icg_string,yytext); push_icg();} functionCall1  {codegen_assign();}
 	;
 assignment_operator
 	: '=' {rhs=1;}
@@ -1034,6 +1029,7 @@ identi1 : ID {
 				if(checkDeclaration(buffer))
 				{
 					addToTable(0,buffer,"identifier", alc);
+					strcpy(icg_string,buffer); push_icg();
 				}
 				else
 				{

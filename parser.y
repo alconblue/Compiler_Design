@@ -54,6 +54,7 @@
 	char *icg_string;
 	int icg_flag=0;
 	char icgstack[1000][50];
+	int dec_flag=1;
 
 	#define ANSI_COLOR_RED     "\x1b[31m"
 	#define ANSI_COLOR_RESET   "\x1b[0m"
@@ -446,20 +447,20 @@
 		top_icg--;
 	}
 
-	while_start()
+	void while_start()
 	{
 		lnum++;
 		label[++ltop]=lnum;
 		printf(ANSI_COLOR_RED "$L%d:\n" ANSI_COLOR_RESET,lnum);
 	}
-	while_rep()
+	void while_rep()
 	{
 		lnum++;
 	 	printf(ANSI_COLOR_RED "if( not %s)" ANSI_COLOR_RESET,icgstack[top_icg]);
 	 	printf(ANSI_COLOR_RED "\tgoto $L%d\n" ANSI_COLOR_RESET,lnum);
 	 	label[++ltop]=lnum;
 	}
-	while_end()
+	void while_end()
 	{
 		int x,y;
 		y=label[ltop--];
@@ -469,17 +470,19 @@
 		top_icg--;
 	}
 
-	func_after()
+	void func_after()
 	{
+		strcpy(icg_string, "$ret_value");
+		push_icg();
 		printf(ANSI_COLOR_RED "label%d:\n" ANSI_COLOR_RESET, label[ltop--]);
 	}
 
-	func_return() 
+	void func_return() 
 	{
 		printf(ANSI_COLOR_RED "goto $ret_addr" ANSI_COLOR_RESET);
 	}
 
-	func_return_v(char *ret_val)
+	void func_return_v(char *ret_val)
 	{
 		printf(ANSI_COLOR_RED "$ret_value = %s\n" ANSI_COLOR_RESET, ret_val);
 		printf(ANSI_COLOR_RED "goto $ret_addr\n" ANSI_COLOR_RESET);
@@ -670,22 +673,36 @@ argumentList : argumentList ',' completeDeclaration
 				| completeDeclaration
 				;
 
-declarationList : dataType identi1 ',' identifierList
-				| dataType identi1
-				| dataType identi1 '=' {rhs=1; strcpy(icg_string,"="); push_icg();} consta {strcpy(icg_string,yytext); push_icg(); codegen_assign();}
-			    | dataType identi1 '=' {rhs=1; strcpy(icg_string,"="); push_icg();} expression {codegen_assign();}
-			    | dataType identi1 '=' {rhs=1; strcpy(icg_string,"="); push_icg();} functionCall1 {codegen_assign();}
-				;				
+declarationList : dataType identifierList
+			   	;				
 
-identifierList : identifierList ',' identi1
-				| identifierList ',' identi1 '=' consta
-				| identifierList ',' identi1 '=' identi 
-				| identi1
-				| identi1 '=' consta
-				| identi1 '=' identi
+identifierListAss : identi1 '=' {rhs=1; strcpy(icg_string,"="); push_icg();};
+
+x : identi2
+	| identifierListAss consta {int len = strlen(yylval.sym); 
+				char *buffer=(char *)malloc(len);
+				int i;
+				for (i=0;i<len;i++)
+				{
+				if ((yylval.sym[i]>='a' && yylval.sym[i]<='z') || (yylval.sym[i]>='A' && yylval.sym[i]<='Z') || (yylval.sym[i]>='0' && yylval.sym[i]<='9') || (yylval.sym[i]=='_'))
+					buffer[i] = yylval.sym[i];
+				}
+				strcpy(icg_string,buffer); push_icg(); codegen_assign();
+				}
+	| identifierListAss identi {int len = strlen(yylval.sym); 
+				char *buffer=(char *)malloc(len);
+				int i;
+				for (i=0;i<len;i++)
+				{
+				if ((yylval.sym[i]>='a' && yylval.sym[i]<='z') || (yylval.sym[i]>='A' && yylval.sym[i]<='Z') || (yylval.sym[i]>='0' && yylval.sym[i]<='9') || (yylval.sym[i]=='_'))
+					buffer[i] = yylval.sym[i];
+				}strcpy(icg_string,buffer); push_icg(); codegen_assign();}
+	| identifierListAss expression {codegen_assign();}
+	;
+
+identifierList : identifierList ',' x
+				| x
 				;
-
-
 
 	/*If and else statements.*/
 	/*The dangling else problem is taken care by having two types of if and else statements: Matched and unmatched statements*/
@@ -739,16 +756,20 @@ primary_expression
 			}
 	| consta {if(rhs==0) {printf(ANSI_COLOR_RED "\nERROR: Lvalue required to be identifier\n" ANSI_COLOR_RESET);} else {strcpy(icg_string,yytext); push_icg();}}
 	| '(' expression ')'
+	| functionCall1
 	;
 postfix_expression
 	: primary_expression
 	| postfix_expression INC {
+			char temp2[10];
 		 	sprintf(temp,"$t%d",i_icg);
-		  	printf(ANSI_COLOR_RED"%s\t=\t%s\t%s\t%s\n"ANSI_COLOR_RESET,temp,icgstack[top_icg],"+","1");
-		 	strcpy(icgstack[top_icg+1],temp);
 		 	i_icg++;
-		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,icgstack[top_icg],icgstack[top_icg+1]);
-		 	top_icg-=3;
+		 	sprintf(temp2,"$t%d",i_icg);
+		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,temp,icgstack[top_icg]);
+		  	printf(ANSI_COLOR_RED"%s\t=\t%s\t%s\t%s\n"ANSI_COLOR_RESET,temp2,icgstack[top_icg],"+","1");
+		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,icgstack[top_icg],temp2);
+		 	strcpy(icgstack[top_icg],temp);
+		 	i_icg++;
 	}
 	| postfix_expression DEC {
 		 	sprintf(temp,"$t%d",i_icg);
@@ -766,18 +787,16 @@ unary_expression
 	| INC unary_expression {
 		 	sprintf(temp,"$t%d",i_icg);
 		  	printf(ANSI_COLOR_RED"%s\t=\t%s\t%s\t%s\n"ANSI_COLOR_RESET,temp,icgstack[top_icg],"+","1");
-		 	strcpy(icgstack[top_icg+1],temp);
+		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,icgstack[top_icg],temp);
+		 	strcpy(icgstack[top_icg], temp);
 		 	i_icg++;
-		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,icgstack[top_icg],icgstack[top_icg+1]);
-		 	top_icg-=3;
 	}
 	| DEC unary_expression {
 		 	sprintf(temp,"$t%d",i_icg);
 		  	printf(ANSI_COLOR_RED"%s\t=\t%s\t%s\t%s\n"ANSI_COLOR_RESET,temp,icgstack[top_icg],"-","1");
-		 	strcpy(icgstack[top_icg+1],temp);
+		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,icgstack[top_icg],temp);
+		 	strcpy(icgstack[top_icg], temp);
 		 	i_icg++;
-		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,icgstack[top_icg],icgstack[top_icg+1]);
-		 	top_icg-=3;
 	}
 	| unary_operator cast_expression {
 		 	sprintf(temp,"$t%d",i_icg);
@@ -1060,7 +1079,25 @@ identi1 : ID {
 					printf(ANSI_COLOR_RED "ERROR: Variable is already declared\n" ANSI_COLOR_RESET);
 				}
 			};
-
+identi2 : ID {
+				int len = strlen(yylval.sym); 
+				char *buffer=(char *)malloc(len);
+				int i;
+				for (i=0;i<len;i++)
+				{
+				if ((yylval.sym[i]>='a' && yylval.sym[i]<='z') || (yylval.sym[i]>='A' && yylval.sym[i]<='Z') || (yylval.sym[i]>='0' && yylval.sym[i]<='9') || (yylval.sym[i]=='_'))
+					buffer[i] = yylval.sym[i];
+				}
+	
+				if(checkDeclaration(buffer))
+				{
+					addToTable(0,buffer,"identifier", alc);
+				}
+				else
+				{
+					printf(ANSI_COLOR_RED "ERROR: Variable is already declared\n" ANSI_COLOR_RESET);
+				}
+			};
 		
 
 consta : CONSTANT {addToTable(1,yylval.sym,"constant", "");};

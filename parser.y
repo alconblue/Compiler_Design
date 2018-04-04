@@ -772,12 +772,15 @@ postfix_expression
 		 	i_icg++;
 	}
 	| postfix_expression DEC {
+		 	char temp2[10];
 		 	sprintf(temp,"$t%d",i_icg);
-		  	printf(ANSI_COLOR_RED"%s\t=\t%s\t%s\t%s\n"ANSI_COLOR_RESET,temp,icgstack[top_icg],"-","1");
-		 	strcpy(icgstack[top_icg+1],temp);
 		 	i_icg++;
-		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,icgstack[top_icg],icgstack[top_icg+1]);
-		 	top_icg-=3;
+		 	sprintf(temp2,"$t%d",i_icg);
+		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,temp,icgstack[top_icg]);
+		  	printf(ANSI_COLOR_RED"%s\t=\t%s\t%s\t%s\n"ANSI_COLOR_RESET,temp2,icgstack[top_icg],"-","1");
+		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,icgstack[top_icg],temp2);
+		 	strcpy(icgstack[top_icg],temp);
+		 	i_icg++;
 	}
 	;
 

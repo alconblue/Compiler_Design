@@ -5,7 +5,7 @@
 %token SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
 %token XOR_ASSIGN OR_ASSIGN 
 
-%token AUTO BREAK CASE CHAR CONST CONTINUE DEFAULT DO DOUBLE ELSE ENUM EXTERN FLOAT FOR GOTO IF INT LONG 
+%token AUTO BREAK CASE CHAR CONST CONTINUE DEFAULT DO DOUBLE ELSE ENUM EXTERN FLOAT FOR GOTO IF INT LONG
 
 %token REGISTER RETURN SHORT SIGNED SIZEOF STATIC STRUCT SWITCH TYPEDEF UNION UNSIGNED VOID VOLATILE WHILE
 
@@ -55,13 +55,20 @@
 	int icg_flag=0;
 	char icgstack[1000][50];
 	int dec_flag=1;
-
+	int trueList[1000][150];
+	int FalseList[1000][150];
+	char storage[1000];
+	int line_no=0;
+	int inif=0;
 	#define ANSI_COLOR_RED     "\x1b[31m"
 	#define ANSI_COLOR_RESET   "\x1b[0m"
+	#define ANSI_COLOR_GREEN     "\x1b[32m"
 
 	int yyerror(char *msg);
 	int yylex();
 	
+	FILE *f;
+
 	struct Stack
 	{
     	int top;
@@ -100,7 +107,6 @@
 
 	void push_icg()
 	{
-		printf("\nPushing %s\n",icg_string);
 		strcpy(icgstack[++top_icg],icg_string);
 	}
 
@@ -399,7 +405,10 @@
 	void codegen()
 	{
 	 	sprintf(temp,"$t%d",i_icg);
-	  	printf(ANSI_COLOR_RED "%s\t=\t%s\t%s\t%s\n" ANSI_COLOR_RESET,temp,icgstack[top_icg-2],icgstack[top_icg-1],icgstack[top_icg]);
+	 	char t[10000];
+	 	sprintf(t, "%s\t=\t%s\t%s\t%s\n" ,temp,icgstack[top_icg-2],icgstack[top_icg-1],icgstack[top_icg]);
+	  	strcat(storage, t);
+	  	line_no++;
 	  	top_icg-=2;
 	 	strcpy(icgstack[top_icg],temp);
 	 	i_icg++;
@@ -409,13 +418,19 @@
 	{
 		if(icg_flag==0)
 		{
-		 	printf(ANSI_COLOR_RED "%s\t%s\t%s\n" ANSI_COLOR_RESET,icgstack[top_icg-2],icgstack[top_icg-1],icgstack[top_icg]);
+			char t[10000];
+			sprintf(t, "%s\t%s\t%s\n" ,icgstack[top_icg-2],icgstack[top_icg-1],icgstack[top_icg]);
+		 	strcat(storage, t);
 		 	top_icg-=3;
+		 	line_no++;
 		}
 		else
 		{
 			// for assignment operators like +=,-=,...
-		 	printf(ANSI_COLOR_RED "%s\t%c\t%s\t%c\t%s\n" ANSI_COLOR_RESET,icgstack[top_icg-2],icgstack[top_icg-1][1],icgstack[top_icg-2],icgstack[top_icg-1][0],icgstack[top_icg]);
+			char t[10000];
+			sprintf(t, "%s\t%c\t%s\t%c\t%s\n" ,icgstack[top_icg-2],icgstack[top_icg-1][1],icgstack[top_icg-2],icgstack[top_icg-1][0],icgstack[top_icg]);
+		 	strcat(storage, t);
+		 	line_no++;
 		 	top_icg-=3;			
 		}
 		icg_flag=0;
@@ -424,18 +439,36 @@
 	void if_label1()
 	{
 		lnum++;
-		printf(ANSI_COLOR_RED "\tif( not %s)" ANSI_COLOR_RESET,icgstack[top_icg]);
-	 	printf(ANSI_COLOR_RED "\tgoto $L%d\n" ANSI_COLOR_RESET,lnum);
+		char t[10000];
+		sprintf(t, "if( not %s)", icgstack[top_icg]);
+		strcat(storage, t);
+	 	strcat(storage, "\tgoto __\n");
+	 	line_no++;
 	 	label[++ltop]=lnum;
 	}
 
 	void if_label2()
 	{
 		int x;
+		char temp[1000];
 		lnum++;
-		x=label[ltop--]; 
-		printf(ANSI_COLOR_RED "\t\tgoto $L%d\n" ANSI_COLOR_RESET,lnum);
-		printf(ANSI_COLOR_RED "$L%d: \n" ANSI_COLOR_RESET,x); 
+		x=label[ltop--];
+		strcat(storage, "\t\tgoto __\n");
+		line_no++;
+		int len = strlen(storage);
+		printf("\n---------%s----------\n", storage);
+		int i=0;
+		for (;i<len;i++)
+		{
+			if (storage[i]=='_' && storage[i+1]=='_')
+			{
+				char temp1[1000];
+				sprintf(temp1, "%d", line_no);
+				storage[i]=temp1[0];
+				break;
+			}
+		}
+		printf("\n---------%s----------\n", storage);
 		label[++ltop]=lnum;
 	}
 
@@ -443,7 +476,17 @@
 	{
 		int y;
 		y=label[ltop--];
-		printf(ANSI_COLOR_RED "$L%d: \n" ANSI_COLOR_RESET,y);
+		int len = strlen(storage);
+		int i=0;
+		for (;i<len;i++)
+		{
+			if (storage[i]=='_' && storage[i+1]=='_')
+			{
+				char temp1[1000];
+				sprintf(temp1, "%d", line_no);
+				storage[i]=temp1[0];
+			}
+		}
 		top_icg--;
 	}
 
@@ -451,13 +494,16 @@
 	{
 		lnum++;
 		label[++ltop]=lnum;
-		printf(ANSI_COLOR_RED "$L%d:\n" ANSI_COLOR_RESET,lnum);
+		char t[1000];
+		sprintf(t, "$L%d:\n" ,lnum);
+		strcat(storage, t);
+		line_no++;
 	}
 	void while_rep()
 	{
 		lnum++;
-	 	printf(ANSI_COLOR_RED "if( not %s)" ANSI_COLOR_RESET,icgstack[top_icg]);
-	 	printf(ANSI_COLOR_RED "\tgoto $L%d\n" ANSI_COLOR_RESET,lnum);
+	 	sprintf(storage, "if( not $t%d)", lnum);
+	 	strcat(storage, "\tgoto __\n");
 	 	label[++ltop]=lnum;
 	}
 	void while_end()
@@ -465,8 +511,13 @@
 		int x,y;
 		y=label[ltop--];
 		x=label[ltop--];
-		printf(ANSI_COLOR_RED "\t\tgoto $L%d\n" ANSI_COLOR_RESET,x);
-		printf(ANSI_COLOR_RED "$L%d: \n" ANSI_COLOR_RESET,y);
+		char t[10000];
+		sprintf(t, "\t\tgoto $L%d\n" ,x);
+		strcat(storage, t);
+		line_no++;
+		sprintf(t, "$L%d: \n" ,y);
+		strcat(storage, t);
+		line_no++;
 		top_icg--;
 	}
 
@@ -474,18 +525,29 @@
 	{
 		strcpy(icg_string, "$ret_value");
 		push_icg();
-		printf(ANSI_COLOR_RED "label%d:\n" ANSI_COLOR_RESET, label[ltop--]);
+		char t[1000];
+		sprintf(t, "label%d:\n" , label[ltop--]);
+		strcat(storage, t);
+		line_no++;
 	}
 
 	void func_return() 
 	{
-		printf(ANSI_COLOR_RED "goto $ret_addr" ANSI_COLOR_RESET);
+		char t[10000];
+		sprintf(t, "goto $ret_addr\n" );
+		strcat(storage, t);
+		line_no++;
 	}
 
 	void func_return_v(char *ret_val)
 	{
-		printf(ANSI_COLOR_RED "$ret_value = %s\n" ANSI_COLOR_RESET, ret_val);
-		printf(ANSI_COLOR_RED "goto $ret_addr\n" ANSI_COLOR_RESET);
+		char t[10000];
+		sprintf(t, "$ret_value = %s\n" , ret_val);
+		strcat(storage, t);
+		line_no++;
+		sprintf(t, "goto $ret_addr\n" );
+		strcat(storage, t);
+		line_no++;
 	}
 
 	void display()
@@ -578,7 +640,11 @@ declaration : dataType ID { int len = strlen(yylval.sym);
 										procFlag = 1;
 										addToTable(0,buffer,"function", alc);
 										procFlag = -1;
-										printf(ANSI_COLOR_RED "%s:\n" ANSI_COLOR_RESET, buffer);
+										char t[10000];
+										sprintf(t, "%s:\n" , buffer);
+										strcat(storage, t);
+										printf("\n----------%s---------%s------\n", buffer,storage);
+										line_no++;
 									}
 									else
 									{
@@ -598,7 +664,10 @@ declaration : dataType ID { int len = strlen(yylval.sym);
 								procFlag = 1;
 								addToTable(0,yylval.sym,"function", alc);
 								procFlag = -1;
-								printf(ANSI_COLOR_RED "%s:\n" ANSI_COLOR_RESET, alc2);
+								char t[10000];
+								sprintf(t, "%s:\n" , alc2);
+								strcat(storage, t);
+								line_no++;
 							}
 							else
 							{
@@ -765,9 +834,16 @@ postfix_expression
 		 	sprintf(temp,"$t%d",i_icg);
 		 	i_icg++;
 		 	sprintf(temp2,"$t%d",i_icg);
-		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,temp,icgstack[top_icg]);
-		  	printf(ANSI_COLOR_RED"%s\t=\t%s\t%s\t%s\n"ANSI_COLOR_RESET,temp2,icgstack[top_icg],"+","1");
-		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,icgstack[top_icg],temp2);
+		 	char t[10000];
+		 	sprintf(t,"%s\t=\t%s\n",temp,icgstack[top_icg]);
+		 	strcat(storage, t);
+		  	sprintf(t,"%s\t=\t%s\t%s\t%s\n",temp2,icgstack[top_icg],"+","1");
+		  	strcat(storage, t);
+		 	sprintf(t,"%s\t=\t%s\n",icgstack[top_icg],temp2);
+		 	strcat(storage, t);
+		 	line_no++;
+		 	line_no++;
+		 	line_no++;
 		 	strcpy(icgstack[top_icg],temp);
 		 	i_icg++;
 	}
@@ -775,10 +851,17 @@ postfix_expression
 		 	char temp2[10];
 		 	sprintf(temp,"$t%d",i_icg);
 		 	i_icg++;
+		 	char t[10000];
 		 	sprintf(temp2,"$t%d",i_icg);
-		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,temp,icgstack[top_icg]);
-		  	printf(ANSI_COLOR_RED"%s\t=\t%s\t%s\t%s\n"ANSI_COLOR_RESET,temp2,icgstack[top_icg],"-","1");
-		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,icgstack[top_icg],temp2);
+		 	sprintf(t,"%s\t=\t%s\n",temp,icgstack[top_icg]);
+		 	strcat(storage, t);
+		  	sprintf(t,"%s\t=\t%s\t%s\t%s\n",temp2,icgstack[top_icg],"-","1");
+		  	strcat(storage, t);
+		 	sprintf(t,"%s\t=\t%s\n",icgstack[top_icg],temp2);
+		 	strcat(storage, t);
+		 	line_no++;
+		 	line_no++;
+		 	line_no++;
 		 	strcpy(icgstack[top_icg],temp);
 		 	i_icg++;
 	}
@@ -789,21 +872,34 @@ unary_expression
 	: postfix_expression
 	| INC unary_expression {
 		 	sprintf(temp,"$t%d",i_icg);
-		  	printf(ANSI_COLOR_RED"%s\t=\t%s\t%s\t%s\n"ANSI_COLOR_RESET,temp,icgstack[top_icg],"+","1");
-		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,icgstack[top_icg],temp);
+		 	char t[10000];
+		  	sprintf(t,"%s\t=\t%s\t%s\t%s\n",temp,icgstack[top_icg],"+","1");
+		  	strcat(storage, t);
+		 	sprintf(t,"%s\t=\t%s\n",icgstack[top_icg],temp);
+		 	strcat(storage, t);
+		 	line_no++;
+		 	line_no++;
 		 	strcpy(icgstack[top_icg], temp);
 		 	i_icg++;
 	}
 	| DEC unary_expression {
 		 	sprintf(temp,"$t%d",i_icg);
-		  	printf(ANSI_COLOR_RED"%s\t=\t%s\t%s\t%s\n"ANSI_COLOR_RESET,temp,icgstack[top_icg],"-","1");
-		 	printf(ANSI_COLOR_RED"%s\t=\t%s\n"ANSI_COLOR_RESET,icgstack[top_icg],temp);
+		 	char t[10000];
+		  	sprintf(f,"%s\t=\t%s\t%s\t%s\n",temp,icgstack[top_icg],"-","1");
+		  	strcat(storage, t);
+		 	sprintf(f,"%s\t=\t%s\n",icgstack[top_icg],temp);
+		 	strcat(storage, t);
+		 	line_no++;
+		 	line_no++;
 		 	strcpy(icgstack[top_icg], temp);
 		 	i_icg++;
 	}
 	| unary_operator cast_expression {
 		 	sprintf(temp,"$t%d",i_icg);
-		  	printf(ANSI_COLOR_RED "%s\t=\t%s\t%s\n" ANSI_COLOR_RESET,temp,icgstack[top_icg-1],icgstack[top_icg]);
+		 	char t[10000];
+		  	sprintf(t, "%s\t=\t%s\t%s\n" ,temp,icgstack[top_icg-1],icgstack[top_icg]);
+		  	strcat(storage, t);
+		  	line_no++;
 		  	top_icg-=1;
 		 	strcpy(icgstack[top_icg],temp);
 		 	i_icg++;
@@ -874,7 +970,9 @@ logical_and_expression
 	;
 logical_or_expression
 	: logical_and_expression
-	| logical_or_expression OR {strcpy(icg_string,yytext); push_icg();} logical_and_expression {codegen();}
+	| logical_or_expression OR {
+
+	strcpy(icg_string,yytext); push_icg();} logical_and_expression {codegen();}
 	;
 conditional_expression
 	: logical_or_expression
@@ -939,15 +1037,18 @@ compoundStatement : startCompound statements endCompound
 				  | startCompound endCompound 
 				  ;
 
-startCompound : '{' {push(stack, newScope++); globalScope = newScope;
+startCompound : '{'
+				{push(stack, newScope++); globalScope = newScope;
 					push(stack1, currentScope++);
-					}
+				}
 			  ;
-endCompound : '}' {pop(stack); globalScope =  stack->array[stack->top]+1;
+endCompound : '}'
+				{
+					pop(stack); globalScope =  stack->array[stack->top]+1;
 					if (stack->top == -1) globalScope = 1;
 					pop(stack1); currentScope =  stack1->array[stack1->top]+1;
 					if (stack1->top == -1) currentScope = 1;
-					}
+				}
 			;
 
 
@@ -1030,7 +1131,10 @@ identi3 : ID {
 					}
 					else
 					{
-						printf(ANSI_COLOR_RED "$ret_addr = label%d\ngoto %s\n" ANSI_COLOR_RESET, ++lnum, buffer);
+						char t[10000];
+						sprintf(t, "$ret_addr = label%d\ngoto %s\n" , ++lnum, buffer);
+						strcat(storage, t);
+						line_no++;
 						label[++ltop]=lnum;
 					}
 				}
@@ -1113,11 +1217,12 @@ extern int lineNo;
 //extern char* yytext;
 int main()
 {
+	f = fopen("file.txt", "w");
 	init();
 	yyparse();
 	if (searchMain()==0)
 		printf(ANSI_COLOR_RED "ERROR: main function not present\n" ANSI_COLOR_RESET);
-	display();
+	fprintf(f, "%s", storage);	
 }
 
 int yywrap()

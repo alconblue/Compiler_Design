@@ -9,6 +9,14 @@ int main()
 	}
 	else
 	{
+		if(a==5)
+		{
+			a =5;
+		}
+		else
+		{
+			a=10;
+		}
 		b=3;
 	}
 return 0;	

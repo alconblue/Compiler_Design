@@ -6,6 +6,10 @@ int main()
 	while(a)
 	{
 		b = a--;
+		while(b>10)
+		{
+			c=++b;
+		}
 	}
 	return 0;
 }

@@ -2,10 +2,14 @@
 
 int main()
 {
-	int a,b,c,d;
-	a=5;
-	b=a*10;
-	c=a+b;
-	d=a-b*c;
+	int a,b;
+	if (a==2)
+	{
+		b=1;
+	}
+	else
+	{
+		b=2;
+	}
 	return 0;
 }
